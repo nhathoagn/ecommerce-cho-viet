@@ -1,0 +1,109 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  BUYER
+  SELLER
+}
+
+enum OrderStatus {
+  PENDING_PAYMENT
+  PAID
+  CONFIRMED
+  PACKING
+  SHIPPING
+  DELIVERED
+  COMPLETED
+  CANCELLED
+  REFUND_REQUESTED
+  REFUNDED
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  REFUNDED
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  role         UserRole @default(BUYER)
+  store        Store?
+  orders       Order[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Store {
+  id        String    @id @default(cuid())
+  name      String
+  slug      String    @unique
+  sellerId  String    @unique
+  seller    User      @relation(fields: [sellerId], references: [id])
+  products  Product[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?
+  price       Decimal  @db.Decimal(14, 0)
+  stock       Int      @default(0)
+  imageKey    String?
+  storeId     String
+  store       Store    @relation(fields: [storeId], references: [id])
+  orderItems  OrderItem[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Order {
+  id          String      @id @default(cuid())
+  code        String      @unique
+  buyerId     String
+  buyer       User        @relation(fields: [buyerId], references: [id])
+  status      OrderStatus @default(PENDING_PAYMENT)
+  totalAmount Decimal     @db.Decimal(14, 0)
+  items       OrderItem[]
+  payment     Payment?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+model OrderItem {
+  id          String   @id @default(cuid())
+  orderId     String
+  order       Order    @relation(fields: [orderId], references: [id])
+  productId   String
+  product     Product  @relation(fields: [productId], references: [id])
+  productName String
+  unitPrice   Decimal  @db.Decimal(14, 0)
+  quantity    Int
+}
+
+model Payment {
+  id                    String        @id @default(cuid())
+  orderId               String        @unique
+  order                 Order         @relation(fields: [orderId], references: [id])
+  provider              String        @default("MOMO")
+  providerTransactionId String?       @unique
+  requestId             String        @unique
+  amount                Decimal       @db.Decimal(14, 0)
+  status                PaymentStatus @default(PENDING)
+  paidAt                DateTime?
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+}

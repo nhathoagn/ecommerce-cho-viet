@@ -1,0 +1,16 @@
+{
+  "name": "ecommerce-marketplace",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@12.10.1",
+  "scripts": {
+    "dev": "pnpm --parallel --filter ./apps/* dev",
+    "dev:web": "pnpm --filter web dev",
+    "dev:api": "pnpm --filter api start:dev",
+    "build": "pnpm --recursive build",
+    "lint": "pnpm --recursive --if-present lint",
+    "test": "pnpm --recursive --if-present test",
+    "db:generate": "pnpm --filter api prisma:generate",
+    "db:migrate": "pnpm --filter api prisma:migrate"
+  }
+}
