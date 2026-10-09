@@ -10,7 +10,11 @@
     "build": "pnpm --recursive build",
     "lint": "pnpm --recursive --if-present lint",
     "test": "pnpm --recursive --if-present test",
+    "check": "pnpm lint && pnpm test && pnpm build",
     "db:generate": "pnpm --filter api prisma:generate",
-    "db:migrate": "pnpm --filter api prisma:migrate"
+    "db:migrate": "pnpm --filter api prisma:migrate",
+    "db:deploy": "pnpm --filter api prisma:deploy",
+    "docker:infra": "docker compose up -d postgres redis",
+    "docker:app": "docker compose --profile app up -d --build"
   }
 }

@@ -22,6 +22,45 @@ services:
     volumes:
       - redis_data:/data
 
+  api:
+    profiles: ["app"]
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      WEB_URL: http://localhost:8080
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/ecommerce?schema=public
+      REDIS_URL: redis://redis:6379
+      LOG_LEVEL: info
+      MOMO_ENDPOINT: https://test-payment.momo.vn/v2/gateway/api/create
+      MOMO_REDIRECT_URL: http://localhost:8080/payment/result
+      MOMO_IPN_URL: http://localhost:3000/api/payments/momo/ipn
+      CLOUDFLARE_R2_BUCKET_PUBLIC: ecommerce-public
+      CLOUDFLARE_R2_BUCKET_PRIVATE: ecommerce-private
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3000/api/health/ready || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  web:
+    profiles: ["app"]
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    ports:
+      - "8080:80"
+    depends_on:
+      api:
+        condition: service_healthy
+
 volumes:
   postgres_data:
   redis_data:
