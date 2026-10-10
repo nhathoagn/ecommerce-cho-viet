@@ -1,16 +1,5 @@
 <script setup lang="ts">
-const features = ['Vue 3 storefront', 'NestJS API', 'MoMo Sandbox', 'Cloudflare R2']
+const categories = [{ icon:'🍜', name:'Thực phẩm' },{ icon:'👕', name:'Thời trang' },{ icon:'🏡', name:'Nhà cửa' },{ icon:'💄', name:'Làm đẹp' },{ icon:'📱', name:'Điện tử' },{ icon:'🎁', name:'Đặc sản' }]
+const products = [{name:'Cà phê rang xay Buôn Ma Thuột',price:'129.000₫',old:'159.000₫',icon:'☕',tag:'-19%'},{name:'Hạt điều rang muối Bình Phước',price:'185.000₫',old:'220.000₫',icon:'🥜',tag:'Bán chạy'},{name:'Áo linen Việt Nam cao cấp',price:'349.000₫',old:'',icon:'👔',tag:'Mới'},{name:'Bộ gốm sứ Bát Tràng',price:'459.000₫',old:'520.000₫',icon:'🏺',tag:'-12%'},{name:'Mật ong hoa cà phê nguyên chất',price:'215.000₫',old:'',icon:'🍯',tag:'Yêu thích'}]
 </script>
-
-<template>
-  <main class="page-shell">
-    <section class="hero">
-      <span class="eyebrow">Ecommerce Marketplace</span>
-      <h1>Source base đã sẵn sàng</h1>
-      <p>Nền tảng bán hàng cho người mua và người bán, tích hợp MoMo và Cloudflare R2.</p>
-      <div class="feature-grid">
-        <article v-for="feature in features" :key="feature">{{ feature }}</article>
-      </div>
-    </section>
-  </main>
-</template>
+<template><div class="home"><section class="market-hero"><div class="container hero-content"><div><span class="hero-kicker">TINH HOA HÀNG VIỆT</span><h1>Chọn hàng Việt,<br /><em>trao niềm tin.</em></h1><p>Khám phá sản phẩm chất lượng từ những nhà bán hàng uy tín trên khắp mọi miền đất nước.</p><div class="hero-buttons"><a href="#san-pham" class="primary-button">Khám phá ngay →</a><RouterLink to="/register?role=seller" class="light-button">Trở thành người bán</RouterLink></div><div class="hero-stats"><span><strong>10K+</strong>Sản phẩm Việt</span><span><strong>2K+</strong>Nhà bán uy tín</span><span><strong>63</strong>Tỉnh thành</span></div></div><div class="hero-art"><span class="art-main">🧺</span><span class="float-item one">☕</span><span class="float-item two">🍯</span><span class="float-item three">🏺</span></div></div></section><section class="container section" id="noi-bat"><div class="section-title"><div><span class="eyebrow">KHÁM PHÁ</span><h2>Danh mục nổi bật</h2></div><a href="#">Xem tất cả →</a></div><div class="category-grid"><article v-for="item in categories" :key="item.name"><span>{{ item.icon }}</span><strong>{{ item.name }}</strong></article></div></section><section class="product-section" id="san-pham"><div class="container section"><div class="section-title"><div><span class="eyebrow">GỢI Ý HÔM NAY</span><h2>Sản phẩm được yêu thích</h2></div><a href="#">Xem tất cả →</a></div><div class="product-grid"><article v-for="item in products" :key="item.name" class="product-card"><div class="product-image"><span class="product-tag">{{ item.tag }}</span><span>{{ item.icon }}</span><button>♡</button></div><div class="product-info"><small>Gian hàng chính hãng ✓</small><h3>{{ item.name }}</h3><div><strong>{{ item.price }}</strong><del v-if="item.old">{{ item.old }}</del></div><p>★ 4.9 <span>Đã bán 1,2k</span></p></div></article></div></div></section><section class="seller-banner container" id="stores"><div><span class="eyebrow-light">DÀNH CHO NGƯỜI BÁN</span><h2>Đưa sản phẩm Việt<br />đến triệu khách hàng</h2><p>Mở gian hàng miễn phí, quản lý đơn hàng dễ dàng và phát triển thương hiệu cùng Chợ Việt.</p><RouterLink to="/register?role=seller" class="light-button">Mở gian hàng ngay →</RouterLink></div><span class="seller-art">🏪</span></section></div></template>
