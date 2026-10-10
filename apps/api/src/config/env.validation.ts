@@ -8,6 +8,12 @@ const envSchema = Joi.object({
   WEB_URL: Joi.string().uri().default('http://localhost:5173'),
   DATABASE_URL: Joi.string().required(),
   REDIS_URL: Joi.string().uri().required(),
+  JWT_ACCESS_SECRET: Joi.string().min(16).default('development-access-secret'),
+  JWT_REFRESH_SECRET: Joi.string()
+    .min(16)
+    .default('development-refresh-secret'),
+  JWT_ACCESS_TTL_SECONDS: Joi.number().integer().positive().default(900),
+  JWT_REFRESH_TTL_SECONDS: Joi.number().integer().positive().default(2592000),
   LOG_LEVEL: Joi.string()
     .valid('fatal', 'error', 'warn', 'info', 'debug', 'trace')
     .default('info'),
