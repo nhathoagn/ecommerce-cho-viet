@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { APP_GUARD } from '@nestjs/core';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { LoggerModule } from 'nestjs-pino';
 import { validateEnv } from './config/env.validation.js';
 import { DatabaseModule } from './database/database.module.js';
@@ -11,6 +13,8 @@ import { UploadsModule } from './modules/uploads/uploads.module.js';
 import { CartModule } from './modules/cart/cart.module.js';
 import { OrdersModule } from './modules/orders/orders.module.js';
 import { PaymentsModule } from './modules/payments/payments.module.js';
+import { SellerFinanceModule } from './modules/seller-finance/seller-finance.module.js';
+import { OperationsModule } from './modules/operations/operations.module.js';
 
 @Module({
   imports: [
@@ -20,6 +24,7 @@ import { PaymentsModule } from './modules/payments/payments.module.js';
       envFilePath: ['.env.local', '.env'],
       validate: validateEnv,
     }),
+    ThrottlerModule.forRoot([{ ttl: 60_000, limit: 120 }]),
     LoggerModule.forRoot({
       pinoHttp: {
         level: process.env.LOG_LEVEL ?? 'info',
@@ -47,6 +52,9 @@ import { PaymentsModule } from './modules/payments/payments.module.js';
     CartModule,
     OrdersModule,
     PaymentsModule,
+    SellerFinanceModule,
+    OperationsModule,
   ],
+  providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })
 export class AppModule {}

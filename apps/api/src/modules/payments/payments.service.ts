@@ -6,7 +6,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { OrderStatus, PaymentStatus, Prisma } from '@prisma/client';
+import { OrderStatus, PaymentStatus, Prisma, WalletTransactionType } from '@prisma/client';
 import { createHmac, randomUUID, timingSafeEqual } from 'node:crypto';
 import { PrismaService } from '../../database/prisma.service.js';
 
@@ -135,7 +135,7 @@ export class PaymentsService {
       throw new UnauthorizedException('Invalid MoMo signature');
     const payment = await this.prisma.payment.findUnique({
       where: { orderId: payload.orderId },
-      include: { order: true },
+      include: { order: { include: { store: true } } },
     });
     if (
       !payment ||
@@ -152,8 +152,13 @@ export class PaymentsService {
       });
       return { resultCode: 0, message: 'Received' };
     }
-    await this.prisma.$transaction([
-      this.prisma.payment.update({
+    await this.prisma.$transaction(async (tx) => {
+      const wallet = await tx.sellerWallet.upsert({
+        where: { sellerId: payment.order.store.sellerId },
+        create: { sellerId: payment.order.store.sellerId },
+        update: {},
+      });
+      await tx.payment.update({
         where: { id: payment.id },
         data: {
           status: PaymentStatus.SUCCESS,
@@ -161,8 +166,8 @@ export class PaymentsService {
           providerTransactionId: String(payload.transId),
           paidAt: new Date(),
         },
-      }),
-      this.prisma.order.update({
+      });
+      await tx.order.update({
         where: { id: payment.orderId },
         data: {
           status: OrderStatus.PAID,
@@ -173,14 +178,28 @@ export class PaymentsService {
             },
           },
         },
-      }),
-    ]);
+      });
+      await tx.walletTransaction.create({
+        data: {
+          walletId: wallet.id,
+          reference: `ORDER:${payment.orderId}`,
+          type: WalletTransactionType.ORDER_CREDIT,
+          amount: payment.amount,
+          description: `Payment for order ${payment.order.code}`,
+        },
+      });
+      await tx.sellerWallet.update({
+        where: { id: wallet.id },
+        data: { availableBalance: { increment: payment.amount } },
+      });
+    });
     return { resultCode: 0, message: 'Received' };
   }
 
   async refund(sellerId: string, orderId: string, amount?: number) {
     const payment = await this.prisma.payment.findFirst({
       where: { orderId, order: { store: { sellerId } } },
+      include: { order: { include: { store: true } } },
     });
     if (
       !payment ||
@@ -211,8 +230,13 @@ export class PaymentsService {
     if (Number(response.resultCode) !== 0)
       throw new BadRequestException(response.message ?? 'Refund rejected');
     const refundedAmount = Number(payment.refundedAmount) + refundAmount;
-    await this.prisma.$transaction([
-      this.prisma.payment.update({
+    await this.prisma.$transaction(async (tx) => {
+      const wallet = await tx.sellerWallet.upsert({
+        where: { sellerId }, create: { sellerId }, update: {},
+      });
+      if (Number(wallet.availableBalance) < refundAmount)
+        throw new BadRequestException('Insufficient seller balance for refund');
+      await tx.payment.update({
         where: { id: payment.id },
         data: {
           refundedAmount: new Prisma.Decimal(refundedAmount),
@@ -222,8 +246,8 @@ export class PaymentsService {
               ? PaymentStatus.REFUNDED
               : PaymentStatus.SUCCESS,
         },
-      }),
-      this.prisma.order.update({
+      });
+      await tx.order.update({
         where: { id: orderId },
         data: {
           status:
@@ -240,8 +264,21 @@ export class PaymentsService {
             },
           },
         },
-      }),
-    ]);
+      });
+      await tx.walletTransaction.create({
+        data: {
+          walletId: wallet.id,
+          reference: `REFUND:${orderId}:${requestId}`,
+          type: WalletTransactionType.REFUND_DEBIT,
+          amount: new Prisma.Decimal(-refundAmount),
+          description: `Refund for order ${payment.order.code}`,
+        },
+      });
+      await tx.sellerWallet.update({
+        where: { id: wallet.id },
+        data: { availableBalance: { decrement: new Prisma.Decimal(refundAmount) } },
+      });
+    });
     return response;
   }
 

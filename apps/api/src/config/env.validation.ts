@@ -29,6 +29,7 @@ const envSchema = Joi.object({
     .default('https://test-payment.momo.vn/v2/gateway/api/refund'),
   MOMO_REDIRECT_URL: Joi.string().uri().required(),
   MOMO_IPN_URL: Joi.string().uri().required(),
+  OPS_API_KEY: Joi.string().min(16).default('local-operations-key-change-me'),
   CLOUDFLARE_ACCOUNT_ID: Joi.string().allow('').default(''),
   CLOUDFLARE_R2_ACCESS_KEY_ID: Joi.string().allow('').default(''),
   CLOUDFLARE_R2_SECRET_ACCESS_KEY: Joi.string().allow('').default(''),

@@ -57,6 +57,20 @@ enum InventoryTransactionType {
   RETURN
 }
 
+enum WalletTransactionType {
+  ORDER_CREDIT
+  REFUND_DEBIT
+  WITHDRAWAL_DEBIT
+  ADJUSTMENT
+}
+
+enum WithdrawalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  PAID
+}
+
 model User {
   id            String         @id @default(cuid())
   email         String         @unique
@@ -71,6 +85,8 @@ model User {
   refreshTokens RefreshToken[]
   addresses     Address[]
   cart          Cart?
+  wallet        SellerWallet?
+  auditLogs     AuditLog[]
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
 }
@@ -287,4 +303,58 @@ model Coupon {
   expiresAt      DateTime?
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
+}
+
+model SellerWallet {
+  id               String              @id @default(cuid())
+  sellerId         String              @unique
+  seller           User                @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  availableBalance Decimal             @default(0) @db.Decimal(14, 0)
+  transactions     WalletTransaction[]
+  withdrawals      WithdrawalRequest[]
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+}
+
+model WalletTransaction {
+  id          String                @id @default(cuid())
+  walletId    String
+  wallet      SellerWallet          @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  reference   String                @unique
+  type        WalletTransactionType
+  amount      Decimal               @db.Decimal(14, 0)
+  description String
+  createdAt   DateTime              @default(now())
+
+  @@index([walletId, createdAt])
+}
+
+model WithdrawalRequest {
+  id            String           @id @default(cuid())
+  walletId      String
+  wallet        SellerWallet     @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  amount        Decimal          @db.Decimal(14, 0)
+  bankName      String
+  accountNumber String
+  accountName   String
+  status        WithdrawalStatus @default(PENDING)
+  note          String?
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  @@index([walletId, status])
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String?
+  actor      User?    @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  action     String
+  entityType String
+  entityId   String?
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  @@index([entityType, entityId])
+  @@index([createdAt])
 }
