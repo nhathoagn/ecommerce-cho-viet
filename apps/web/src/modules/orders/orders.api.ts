@@ -5,4 +5,6 @@ export const ordersApi = {
   list: () => apiClient.get('/orders').then(unwrap<Order[]>),
   checkout: (addressId: string, couponCode?: string) => apiClient.post('/orders', { addressId, couponCode: couponCode || undefined }).then(unwrap<Order>),
   cancel: (id: string) => apiClient.post(`/orders/${id}/cancel`).then(unwrap<Order>),
+  createMomoPayment: (id: string) => apiClient.post(`/payments/momo/create/${id}`).then(unwrap<{ payUrl: string }>),
+  paymentStatus: (id: string) => apiClient.get(`/payments/${id}/status`).then(unwrap<{ status: string } | null>),
 }

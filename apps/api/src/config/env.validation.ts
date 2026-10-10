@@ -21,6 +21,12 @@ const envSchema = Joi.object({
   MOMO_ACCESS_KEY: Joi.string().allow('').default(''),
   MOMO_SECRET_KEY: Joi.string().allow('').default(''),
   MOMO_ENDPOINT: Joi.string().uri().required(),
+  MOMO_QUERY_ENDPOINT: Joi.string()
+    .uri()
+    .default('https://test-payment.momo.vn/v2/gateway/api/query'),
+  MOMO_REFUND_ENDPOINT: Joi.string()
+    .uri()
+    .default('https://test-payment.momo.vn/v2/gateway/api/refund'),
   MOMO_REDIRECT_URL: Joi.string().uri().required(),
   MOMO_IPN_URL: Joi.string().uri().required(),
   CLOUDFLARE_ACCOUNT_ID: Joi.string().allow('').default(''),

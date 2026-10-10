@@ -253,7 +253,11 @@ model Payment {
   requestId             String        @unique
   amount                Decimal       @db.Decimal(14, 0)
   status                PaymentStatus @default(PENDING)
+  resultCode            Int?
+  payUrl                String?
+  refundedAmount        Decimal       @default(0) @db.Decimal(14, 0)
   paidAt                DateTime?
+  refundedAt            DateTime?
   createdAt             DateTime      @default(now())
   updatedAt             DateTime      @updatedAt
 }
