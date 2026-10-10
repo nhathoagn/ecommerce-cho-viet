@@ -5,10 +5,14 @@ export interface Address {
   id: string
   recipientName: string
   phone: string
-  province: string
+  province?: string
+  city?: string
   district: string
-  ward: string
-  street: string
+  ward?: string
+  street?: string
+  line1?: string
+  line2?: string
+  postalCode?: string
   label?: string
   isDefault: boolean
 }
