@@ -4,11 +4,13 @@ import {
   IsBoolean,
   IsEmail,
   IsEnum,
+  IsIn,
   IsOptional,
   IsString,
   IsUrl,
   Length,
   MinLength,
+  ValidateIf,
 } from 'class-validator';
 
 export class RegisterDto {
@@ -31,6 +33,44 @@ export class RegisterDto {
   @IsString()
   @Length(6, 20)
   phone?: string;
+}
+
+export class RegisterWithRoleDto {
+  @ApiProperty({ example: 'buyer@example.com' })
+  @IsEmail()
+  email!: string;
+
+  @ApiProperty({ minLength: 8 })
+  @IsString()
+  @MinLength(8)
+  password!: string;
+
+  @ApiPropertyOptional({ example: 'Nguyen Van A' })
+  @ValidateIf((dto: RegisterWithRoleDto) => !dto.fullName)
+  @IsString()
+  @Length(2, 100)
+  name?: string;
+
+  @ApiPropertyOptional({ example: 'Nguyen Van A' })
+  @ValidateIf((dto: RegisterWithRoleDto) => !dto.name)
+  @IsString()
+  @Length(2, 100)
+  fullName?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @Length(6, 20)
+  phone?: string;
+
+  @ApiProperty({ enum: [UserRole.BUYER, UserRole.SELLER] })
+  @IsIn([UserRole.BUYER, UserRole.SELLER])
+  role!: UserRole;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  storeName?: string;
 }
 
 export class LoginDto {

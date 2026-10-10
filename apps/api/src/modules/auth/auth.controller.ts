@@ -6,6 +6,7 @@ import {
   LoginDto,
   RefreshTokenDto,
   RegisterDto,
+  RegisterWithRoleDto,
 } from './auth.dto.js';
 import { AuthService } from './auth.service.js';
 
@@ -13,6 +14,16 @@ import { AuthService } from './auth.service.js';
 @Controller('auth')
 export class AuthController {
   constructor(private readonly auth: AuthService) {}
+
+  @Post('register')
+  @ApiOkResponse({ type: AuthResponseDto })
+  register(@Body() dto: RegisterWithRoleDto) {
+    const { role, fullName, storeName: _storeName, ...registration } = dto;
+    return this.auth.register(
+      { ...registration, name: registration.name ?? fullName! },
+      role,
+    );
+  }
 
   @Post('register/buyer')
   @ApiOkResponse({ type: AuthResponseDto })
