@@ -70,6 +70,7 @@ model User {
   orders        Order[]
   refreshTokens RefreshToken[]
   addresses     Address[]
+  cart          Cart?
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
 }
@@ -150,11 +151,34 @@ model Product {
   images                ProductImage[]
   inventoryTransactions InventoryTransaction[]
   orderItems            OrderItem[]
+  cartItems             CartItem[]
   createdAt             DateTime               @default(now())
   updatedAt             DateTime               @updatedAt
 
   @@index([storeId, status])
   @@index([categoryId, status])
+}
+
+model Cart {
+  id        String     @id @default(cuid())
+  userId    String     @unique
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items     CartItem[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model CartItem {
+  id        String   @id @default(cuid())
+  cartId    String
+  cart      Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  quantity  Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([cartId, productId])
 }
 
 model ProductImage {
