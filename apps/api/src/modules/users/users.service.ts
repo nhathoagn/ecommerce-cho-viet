@@ -52,7 +52,18 @@ export class UsersService {
           data: { isDefault: false },
         });
       return tx.address.create({
-        data: { ...dto, isDefault: makeDefault, userId },
+        data: {
+          userId,
+          recipientName: dto.recipientName,
+          phone: dto.phone,
+          line1: dto.line1,
+          line2: dto.line2,
+          ward: dto.ward,
+          district: dto.district,
+          city: dto.city,
+          postalCode: dto.postalCode,
+          isDefault: makeDefault,
+        },
       });
     });
   }
