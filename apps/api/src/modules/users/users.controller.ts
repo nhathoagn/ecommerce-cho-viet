@@ -50,6 +50,12 @@ export class UsersController {
   ) {
     return this.users.updateAddress(user.id, id, dto);
   }
+  @Patch('addresses/:id/default') setDefaultAddress(
+    @CurrentUser() user: AuthUser,
+    @Param('id') id: string,
+  ) {
+    return this.users.updateAddress(user.id, id, { isDefault: true });
+  }
   @Delete('addresses/:id') deleteAddress(
     @CurrentUser() user: AuthUser,
     @Param('id') id: string,
