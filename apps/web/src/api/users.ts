@@ -25,7 +25,11 @@ const unwrap = <T>(response: AxiosResponse<T | { data: T }>): T => {
 
 export const usersApi = {
   async updateProfile(payload: { fullName: string; phone?: string; avatarUrl?: string }) {
-    return unwrap(await apiClient.patch('/users/me', payload))
+    return unwrap(await apiClient.patch('/users/me', {
+      name: payload.fullName,
+      phone: payload.phone,
+      avatarUrl: payload.avatarUrl,
+    }))
   },
   async getAddresses() {
     return unwrap(await apiClient.get<Address[]>('/users/me/addresses'))
