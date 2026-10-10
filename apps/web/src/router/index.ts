@@ -10,6 +10,8 @@ const router = createRouter({
     { path: '/register', name: 'register', component: () => import('../views/RegisterView.vue'), meta: { guestOnly: true } },
     { path: '/', component: DefaultLayout, children: [
       { path: '', name: 'home', component: HomeView },
+      { path: 'products', name: 'catalog', component: () => import('../views/CatalogView.vue') },
+      { path: 'products/:slug', name: 'product-detail', component: () => import('../views/ProductDetailView.vue') },
       { path: 'profile', name: 'profile', component: () => import('../views/ProfileView.vue'), meta: { requiresAuth: true } },
       { path: 'seller', name: 'seller-dashboard', component: () => import('../views/SellerDashboardView.vue'), meta: { requiresAuth: true, role: 'SELLER' } },
       { path: 'payment/result', name: 'payment-result', component: () => import('../views/PaymentResultView.vue') },

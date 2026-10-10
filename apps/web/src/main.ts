@@ -4,5 +4,6 @@ import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router'
 import './style.css'
+import './catalog.css'
 
 createApp(App).use(createPinia()).use(VueQueryPlugin).use(router).mount('#app')
