@@ -92,7 +92,8 @@ async function upload(file: File) {
   error.value = ''
   try {
     const signed = await sellerCatalogApi.presign(file.name, file.type)
-    await fetch(signed.uploadUrl, { method: 'PUT', headers: { 'content-type': file.type }, body: file })
+    const response = await fetch(signed.uploadUrl, { method: 'PUT', headers: { 'content-type': file.type }, body: file })
+    if (!response.ok) throw new Error(`Tải ảnh lên thất bại (${response.status})`)
     form.imageKey = signed.objectKey
   } catch (reason) {
     error.value = messageOf(reason)
