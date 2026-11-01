@@ -6,9 +6,12 @@
   "regions": ["cle1"],
   "functions": {
     "api/**/*.mjs": {
-      "includeFiles": ["apps/api/dist/**", "node_modules/.pnpm/@prisma+client*/**"],
-      "maxDuration": 60
+      "maxDuration": 60,
+      "regions": ["cle1"]
     }
   },
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+  "rewrites": [
+    { "source": "/api/:path((?!$).*)", "destination": "/api/[...path]?__p=:path" },
+    { "source": "/:path((?!api/).*)", "destination": "/index.html" }
+  ]
 }

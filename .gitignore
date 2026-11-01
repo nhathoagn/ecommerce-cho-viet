@@ -21,3 +21,5 @@ coverage
 .verify-dist
 .tmp-*.png
 tsconfig.verify.json
+.vercel
+.env*

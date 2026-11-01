@@ -9,8 +9,18 @@ const ready = createApp().then((app) => app.init());
 
 export default async function handler(req: IncomingMessage, res: ServerResponse) {
   const app = await ready;
-  // Nest routes are registered under /api; restore the prefix if the platform
-  // handed us the path already stripped.
-  if (!req.url?.startsWith('/api')) req.url = `/api${req.url ?? ''}`;
+  // vercel.json forwards the path as ?__p=... so every depth reaches this one
+  // function; Nest still expects its routes under /api.
+  const [pathname, query = ''] = (req.url ?? '/').split('?');
+  const params = new URLSearchParams(query);
+  const forwarded = params.get('__p');
+  if (forwarded !== null) {
+    params.delete('__p');
+    params.delete('path');
+    const rest = params.toString();
+    req.url = `/api/${forwarded}${rest ? `?${rest}` : ''}`;
+  } else if (!pathname.startsWith('/api')) {
+    req.url = `/api${req.url ?? ''}`;
+  }
   return app.getHttpAdapter().getInstance()(req, res);
 }
