@@ -2,19 +2,19 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { usersApi, type Address, type AddressPayload } from '@/api/users'
-import DsAvatar from '@/components/ds/DsAvatar.vue'
-import DsButton from '@/components/ds/DsButton.vue'
-import DsCheckbox from '@/components/ds/DsCheckbox.vue'
-import DsDialog from '@/components/ds/DsDialog.vue'
-import DsEmpty from '@/components/ds/DsEmpty.vue'
-import DsFieldError from '@/components/ds/DsFieldError.vue'
-import DsInput from '@/components/ds/DsInput.vue'
-import DsLabel from '@/components/ds/DsLabel.vue'
-import DsNote from '@/components/ds/DsNote.vue'
-import DsPill from '@/components/ds/DsPill.vue'
-import DsSkeleton from '@/components/ds/DsSkeleton.vue'
+import BaseAvatar from '@/components/base/BaseAvatar.vue'
+import BaseButton from '@/components/base/BaseButton.vue'
+import BaseCheckbox from '@/components/base/BaseCheckbox.vue'
+import BaseDialog from '@/components/base/BaseDialog.vue'
+import BaseEmpty from '@/components/base/BaseEmpty.vue'
+import BaseFieldError from '@/components/base/BaseFieldError.vue'
+import BaseInput from '@/components/base/BaseInput.vue'
+import BaseLabel from '@/components/base/BaseLabel.vue'
+import BaseNote from '@/components/base/BaseNote.vue'
+import BasePill from '@/components/base/BasePill.vue'
+import BaseSkeleton from '@/components/base/BaseSkeleton.vue'
 import { phoneVN, required, validate } from '@/lib/form'
-import { useAuthStore } from '@/stores/auth'
+import { messageOf, useAuthStore } from '@/stores/auth'
 
 const route = useRoute()
 const auth = useAuthStore()
@@ -43,10 +43,18 @@ function clearAddressError(field: string) {
   delete addressErrors.value[field]
 }
 
-onMounted(async () => {
+const addressesError = ref('')
+const addressError = ref('')
+const removingId = ref('')
+const showRemove = ref(false)
+
+async function loadAddresses() {
+  addressesError.value = ''
   try { addresses.value = await usersApi.getAddresses() }
+  catch (reason) { addressesError.value = messageOf(reason) }
   finally { loading.value = false }
-})
+}
+onMounted(loadAddresses)
 
 function clearProfileError(field: string) {
   delete profileErrors.value[field]
@@ -87,24 +95,44 @@ async function saveAddress() {
     document.getElementById(firstInvalid)?.focus()
     return
   }
-  const item = editingId.value
-    ? await usersApi.updateAddress(editingId.value, addressForm)
-    : await usersApi.createAddress(addressForm)
-  const index = addresses.value.findIndex((address) => address.id === item.id)
-  if (index >= 0) addresses.value[index] = item
-  else addresses.value.push(item)
-  showForm.value = false
+  addressError.value = ''
+  try {
+    const item = editingId.value
+      ? await usersApi.updateAddress(editingId.value, addressForm)
+      : await usersApi.createAddress(addressForm)
+    const index = addresses.value.findIndex((address) => address.id === item.id)
+    if (index >= 0) addresses.value[index] = item
+    else addresses.value.push(item)
+    showForm.value = false
+  } catch (reason) {
+    addressError.value = messageOf(reason)
+  }
 }
 
-async function removeAddress(id: string) {
-  if (!confirm('Xóa địa chỉ này?')) return
-  await usersApi.deleteAddress(id)
-  addresses.value = addresses.value.filter((address) => address.id !== id)
+function askRemove(id: string) {
+  removingId.value = id
+  showRemove.value = true
+}
+
+async function confirmRemove() {
+  addressError.value = ''
+  try {
+    await usersApi.deleteAddress(removingId.value)
+    addresses.value = addresses.value.filter((address) => address.id !== removingId.value)
+    showRemove.value = false
+  } catch (reason) {
+    addressError.value = messageOf(reason)
+  }
 }
 
 async function setDefault(id: string) {
-  await usersApi.setDefaultAddress(id)
-  addresses.value = addresses.value.map((address) => ({ ...address, isDefault: address.id === id }))
+  addressError.value = ''
+  try {
+    await usersApi.setDefaultAddress(id)
+    addresses.value = addresses.value.map((address) => ({ ...address, isDefault: address.id === id }))
+  } catch (reason) {
+    addressError.value = messageOf(reason)
+  }
 }
 </script>
 
@@ -112,7 +140,7 @@ async function setDefault(id: string) {
   <div class="mx-auto grid w-full max-w-6xl gap-8 px-4 py-10 sm:px-5 lg:grid-cols-[220px_1fr] lg:items-start">
     <aside class="lg:sticky lg:top-24">
       <div class="flex items-center gap-3 pb-4">
-        <DsAvatar size="lg" :name="auth.user?.fullName" />
+        <BaseAvatar size="lg" :name="auth.user?.fullName" />
         <div class="min-w-0">
           <strong class="block truncate text-[15px]">{{ auth.user?.fullName }}</strong>
           <small class="text-muted-foreground block truncate text-xs">{{ auth.user?.email }}</small>
@@ -140,25 +168,25 @@ async function setDefault(id: string) {
         <h2 class="mt-2 text-[24px] sm:text-[28px]">Hồ sơ cá nhân</h2>
         <p class="text-muted-foreground mt-1 text-sm">Quản lý thông tin liên hệ của bạn.</p>
 
-        <DsNote v-if="notice" tone="ok" class="mt-4">{{ notice }}</DsNote>
+        <BaseNote v-if="notice" tone="ok" class="mt-4">{{ notice }}</BaseNote>
 
         <form class="mt-5 grid max-w-xl gap-4" novalidate @submit.prevent="saveProfile">
           <div class="grid gap-1.5">
-            <DsLabel for="fullName" required>Họ và tên</DsLabel>
-            <DsInput id="fullName" v-model="profile.fullName" autocomplete="name" :invalid="!!profileErrors.fullName" @input="clearProfileError('fullName')" />
-            <DsFieldError :message="profileErrors.fullName" />
+            <BaseLabel for="fullName" required>Họ và tên</BaseLabel>
+            <BaseInput id="fullName" v-model="profile.fullName" autocomplete="name" :invalid="!!profileErrors.fullName" @input="clearProfileError('fullName')" />
+            <BaseFieldError :message="profileErrors.fullName" />
           </div>
           <div class="grid gap-1.5">
-            <DsLabel for="phone">Số điện thoại</DsLabel>
-            <DsInput id="phone" v-model="profile.phone" type="tel" autocomplete="tel" :invalid="!!profileErrors.phone" @input="clearProfileError('phone')" />
-            <DsFieldError :message="profileErrors.phone" />
+            <BaseLabel for="phone">Số điện thoại</BaseLabel>
+            <BaseInput id="phone" v-model="profile.phone" type="tel" autocomplete="tel" :invalid="!!profileErrors.phone" @input="clearProfileError('phone')" />
+            <BaseFieldError :message="profileErrors.phone" />
           </div>
           <div class="grid gap-1.5">
-            <DsLabel for="email">Email</DsLabel>
-            <DsInput id="email" :model-value="auth.user?.email" disabled class="opacity-70" />
+            <BaseLabel for="email">Email</BaseLabel>
+            <BaseInput id="email" :model-value="auth.user?.email" disabled class="opacity-70" />
             <small class="text-muted-foreground text-xs">Email không thể thay đổi</small>
           </div>
-          <DsButton type="submit" variant="primary" class="w-fit">Lưu thay đổi</DsButton>
+          <BaseButton type="submit" variant="primary" class="w-fit">Lưu thay đổi</BaseButton>
         </form>
       </section>
 
@@ -169,15 +197,20 @@ async function setDefault(id: string) {
             <h2 class="mt-2 text-[24px] sm:text-[28px]">Địa chỉ của tôi</h2>
             <p class="text-muted-foreground mt-1 text-sm">Địa chỉ dùng để nhận hàng.</p>
           </div>
-          <DsButton variant="outline" size="sm" @click="openAddress()">Thêm địa chỉ</DsButton>
+          <BaseButton variant="outline" size="sm" @click="openAddress()">Thêm địa chỉ</BaseButton>
         </div>
 
         <div class="mt-5 grid gap-3">
-          <DsSkeleton v-if="loading" class="h-24" />
-          <DsEmpty v-else-if="!addresses.length">
+          <BaseSkeleton v-if="loading" class="h-24" />
+          <BaseNote v-else-if="addressesError" tone="bad">
+            {{ addressesError }}
+            <button type="button" class="ml-2 font-semibold underline" @click="loadAddresses">Thử lại</button>
+          </BaseNote>
+          <BaseNote v-if="addressError" tone="bad">{{ addressError }}</BaseNote>
+          <BaseEmpty v-else-if="!addresses.length && !addressesError">
             <p class="text-lg font-bold">Chưa có địa chỉ</p>
             <p class="text-muted-foreground text-sm">Thêm địa chỉ để đặt hàng nhanh hơn.</p>
-          </DsEmpty>
+          </BaseEmpty>
 
           <template v-else>
           <article
@@ -190,16 +223,16 @@ async function setDefault(id: string) {
               <div class="flex flex-wrap items-center gap-2">
                 <strong class="text-[15px]">{{ address.recipientName }}</strong>
                 <span class="num text-muted-foreground text-[13px]">{{ address.phone }}</span>
-                <DsPill v-if="address.isDefault" tone="ok">Mặc định</DsPill>
+                <BasePill v-if="address.isDefault" tone="ok">Mặc định</BasePill>
               </div>
               <p class="text-muted-foreground mt-1 text-sm leading-relaxed">
                 {{ address.street }}, {{ address.ward }}, {{ address.district }}, {{ address.province }}
               </p>
             </div>
             <div class="flex shrink-0 flex-wrap items-center gap-1">
-              <DsButton type="button" variant="quiet" size="sm" @click="openAddress(address)">Sửa</DsButton>
-              <DsButton v-if="!address.isDefault" type="button" variant="quiet" size="sm" @click="setDefault(address.id)">Đặt mặc định</DsButton>
-              <DsButton type="button" variant="quiet" size="sm" class="hover:text-bad" @click="removeAddress(address.id)">Xóa</DsButton>
+              <BaseButton type="button" variant="quiet" size="sm" @click="openAddress(address)">Sửa</BaseButton>
+              <BaseButton v-if="!address.isDefault" type="button" variant="quiet" size="sm" @click="setDefault(address.id)">Đặt mặc định</BaseButton>
+              <BaseButton type="button" variant="quiet" size="sm" class="hover:text-bad" @click="askRemove(address.id)">Xóa</BaseButton>
             </div>
           </article>
           </template>
@@ -207,7 +240,16 @@ async function setDefault(id: string) {
       </section>
     </div>
 
-    <DsDialog v-model:open="showForm">
+    <BaseDialog v-model:open="showRemove">
+      <p class="text-xl">Xoá địa chỉ này?</p>
+      <p class="text-muted-foreground mt-2 text-sm leading-relaxed">Địa chỉ sẽ biến mất khỏi danh sách nhận hàng.</p>
+      <div class="border-rule mt-5 flex justify-end gap-2 border-t pt-4">
+        <BaseButton variant="outline" @click="showRemove = false">Giữ lại</BaseButton>
+        <BaseButton variant="danger" @click="confirmRemove">Xoá địa chỉ</BaseButton>
+      </div>
+    </BaseDialog>
+
+    <BaseDialog v-model:open="showForm">
       <form class="grid gap-4" novalidate @submit.prevent="saveAddress">
         <div>
           <p class="label-xs text-primary">Địa chỉ nhận hàng</p>
@@ -215,19 +257,19 @@ async function setDefault(id: string) {
           <p class="text-muted-foreground mt-1 text-sm">Nhập thông tin người nhận và nơi giao hàng.</p>
         </div>
         <div class="grid gap-1.5">
-          <DsLabel for="recipientName" required>Người nhận</DsLabel>
-          <DsInput
+          <BaseLabel for="recipientName" required>Người nhận</BaseLabel>
+          <BaseInput
             id="recipientName"
             v-model="addressForm.recipientName"
             :invalid="!!addressErrors.recipientName"
             required
             @input="clearAddressError('recipientName')"
           />
-          <DsFieldError :message="addressErrors.recipientName" />
+          <BaseFieldError :message="addressErrors.recipientName" />
         </div>
         <div class="grid gap-1.5">
-          <DsLabel for="addressPhone" required>Số điện thoại</DsLabel>
-          <DsInput
+          <BaseLabel for="addressPhone" required>Số điện thoại</BaseLabel>
+          <BaseInput
             id="addressPhone"
             v-model="addressForm.phone"
             type="tel"
@@ -235,39 +277,39 @@ async function setDefault(id: string) {
             required
             @input="clearAddressError('addressPhone')"
           />
-          <DsFieldError :message="addressErrors.addressPhone" />
+          <BaseFieldError :message="addressErrors.addressPhone" />
         </div>
         <div class="grid gap-1.5">
-          <DsLabel for="street" required>Địa chỉ cụ thể</DsLabel>
-          <DsInput id="street" v-model="addressForm.street" :invalid="!!addressErrors.street" required @input="clearAddressError('street')" />
-          <DsFieldError :message="addressErrors.street" />
+          <BaseLabel for="street" required>Địa chỉ cụ thể</BaseLabel>
+          <BaseInput id="street" v-model="addressForm.street" :invalid="!!addressErrors.street" required @input="clearAddressError('street')" />
+          <BaseFieldError :message="addressErrors.street" />
         </div>
         <div class="grid gap-3 sm:grid-cols-3">
           <div class="grid gap-1.5">
-            <DsLabel for="ward">Phường / Xã</DsLabel>
-            <DsInput id="ward" v-model="addressForm.ward" required />
+            <BaseLabel for="ward">Phường / Xã</BaseLabel>
+            <BaseInput id="ward" v-model="addressForm.ward" required />
           </div>
           <div class="grid gap-1.5">
-            <DsLabel for="district" required>Quận / Huyện</DsLabel>
-            <DsInput id="district" v-model="addressForm.district" :invalid="!!addressErrors.district" required @input="clearAddressError('district')" />
-            <DsFieldError :message="addressErrors.district" />
+            <BaseLabel for="district" required>Quận / Huyện</BaseLabel>
+            <BaseInput id="district" v-model="addressForm.district" :invalid="!!addressErrors.district" required @input="clearAddressError('district')" />
+            <BaseFieldError :message="addressErrors.district" />
           </div>
           <div class="grid gap-1.5">
-            <DsLabel for="province" required>Tỉnh / Thành phố</DsLabel>
-            <DsInput id="province" v-model="addressForm.province" :invalid="!!addressErrors.province" required @input="clearAddressError('province')" />
-            <DsFieldError :message="addressErrors.province" />
+            <BaseLabel for="province" required>Tỉnh / Thành phố</BaseLabel>
+            <BaseInput id="province" v-model="addressForm.province" :invalid="!!addressErrors.province" required @input="clearAddressError('province')" />
+            <BaseFieldError :message="addressErrors.province" />
           </div>
         </div>
         <div class="grid gap-1.5">
-          <DsLabel for="label">Nhãn địa chỉ</DsLabel>
-          <DsInput id="label" v-model="addressForm.label" placeholder="Nhà riêng, Văn phòng…" />
+          <BaseLabel for="label">Nhãn địa chỉ</BaseLabel>
+          <BaseInput id="label" v-model="addressForm.label" placeholder="Nhà riêng, Văn phòng…" />
         </div>
-        <DsCheckbox id="isDefault" v-model="addressForm.isDefault" label="Đặt làm địa chỉ mặc định" />
+        <BaseCheckbox id="isDefault" v-model="addressForm.isDefault" label="Đặt làm địa chỉ mặc định" />
         <div class="border-rule flex justify-end gap-2 border-t pt-4">
-          <DsButton type="button" variant="outline" @click="showForm = false">Hủy</DsButton>
-          <DsButton type="submit" variant="primary">Lưu địa chỉ</DsButton>
+          <BaseButton type="button" variant="outline" @click="showForm = false">Hủy</BaseButton>
+          <BaseButton type="submit" variant="primary">Lưu địa chỉ</BaseButton>
         </div>
       </form>
-    </DsDialog>
+    </BaseDialog>
   </div>
 </template>

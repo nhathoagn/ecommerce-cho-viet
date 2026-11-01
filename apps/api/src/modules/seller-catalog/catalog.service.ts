@@ -13,6 +13,8 @@ import { PrismaService } from '../../database/prisma.service.js';
 import {
   AdjustInventoryDto,
   CreateCategoryDto,
+  DEFAULT_PAGE_SIZE,
+  MAX_PAGE_SIZE,
   CreateProductDto,
   CreateStoreDto,
   ProductQueryDto,
@@ -84,12 +86,15 @@ export class SellerCatalogService {
     });
   }
 
-  async listProducts(sellerId: string) {
+  async listProducts(sellerId: string, page?: number, pageSize?: number) {
     const store = await this.requireStore(sellerId);
+    const size = Math.min(pageSize ?? DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE);
     return this.prisma.product.findMany({
       where: { storeId: store.id },
       include: productInclude,
       orderBy: { createdAt: 'desc' },
+      take: size,
+      skip: ((page ?? 1) - 1) * size,
     });
   }
 
@@ -268,6 +273,7 @@ export class CatalogService {
   }
 
   products(query: ProductQueryDto) {
+    const size = Math.min(query.pageSize ?? DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE);
     return this.prisma.product.findMany({
       where: {
         status: ProductStatus.ACTIVE,
@@ -279,6 +285,8 @@ export class CatalogService {
       },
       include: productInclude,
       orderBy: { createdAt: 'desc' },
+      take: size,
+      skip: ((query.page ?? 1) - 1) * size,
     });
   }
 

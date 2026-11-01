@@ -8,6 +8,10 @@ import { sellerFinanceApi, type SellerSummary, type SellerWallet } from '../sell
 const WAITING = ['PAID', 'CONFIRMED', 'PACKING']
 const LOW_STOCK = 5
 
+const SELLER_PAGE_SIZE = 100
+/** Hard stop so a broken API cannot loop forever. */
+const MAX_PRODUCT_PAGES = 20
+
 export const useSellerStore = defineStore('seller', () => {
   const store = ref<Store | null>(null)
   const products = ref<Product[]>([])
@@ -21,7 +25,16 @@ export const useSellerStore = defineStore('seller', () => {
   const lowStock = computed(() => products.value.filter((product) => product.status !== 'DRAFT' && product.stock <= LOW_STOCK))
   const liveProducts = computed(() => products.value.filter((product) => product.status === 'ACTIVE' || product.status === 'OUT_OF_STOCK'))
 
-  async function refreshProducts() { products.value = await sellerCatalogApi.products() }
+  // The dashboard counters are derived from the whole catalogue, so read every page.
+  async function refreshProducts() {
+    const all: Product[] = []
+    for (let page = 1; page <= MAX_PRODUCT_PAGES; page++) {
+      const chunk = await sellerCatalogApi.products({ page: String(page), pageSize: String(SELLER_PAGE_SIZE) })
+      all.push(...chunk)
+      if (chunk.length < SELLER_PAGE_SIZE) break
+    }
+    products.value = all
+  }
   async function refreshOrders() { orders.value = await sellerOrdersApi.list() }
   async function refreshSummary() { summary.value = await sellerFinanceApi.summary() }
   async function refreshWallet() { wallet.value = await sellerFinanceApi.wallet() }

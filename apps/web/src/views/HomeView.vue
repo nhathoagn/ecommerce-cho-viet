@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import ProductCard from '@/components/ProductCard.vue'
-import DsButton from '@/components/ds/DsButton.vue'
-import DsPill from '@/components/ds/DsPill.vue'
-import DsSkeleton from '@/components/ds/DsSkeleton.vue'
-import DsNote from '@/components/ds/DsNote.vue'
+import BaseButton from '@/components/base/BaseButton.vue'
+import BasePill from '@/components/base/BasePill.vue'
+import BaseSkeleton from '@/components/base/BaseSkeleton.vue'
+import BaseNote from '@/components/base/BaseNote.vue'
 import { productImageUrl, productInitials } from '@/media'
 import { money, pastelWell, salePercent } from '@/money'
 import { Gift, Ticket, Truck } from '@lucide/vue'
@@ -26,6 +26,8 @@ const sort = ref<'stock' | 'new' | 'deals'>('stock')
 const addingId = ref('')
 const cartError = ref('')
 const copied = ref(false)
+let copiedTimer: number | undefined
+onBeforeUnmount(() => window.clearTimeout(copiedTimer))
 
 const sorts = [
   { key: 'stock', label: 'Sẵn nhiều' },
@@ -102,7 +104,8 @@ async function copyCoupon() {
   try {
     await navigator.clipboard.writeText('CHOVIET10')
     copied.value = true
-    window.setTimeout(() => (copied.value = false), 1800)
+    window.clearTimeout(copiedTimer)
+    copiedTimer = window.setTimeout(() => (copied.value = false), 1800)
   } catch {
     copied.value = false
   }
@@ -127,10 +130,10 @@ const wellOf = (name: string) => ({
           Tuyển chọn từ làng nghề và vườn nhà — gạo, mắm, trà, lụa. Đặt hôm nay, giao trong 2 giờ ở Hà Nội và TP.HCM.
         </p>
         <div class="mt-7 flex flex-wrap gap-2.5">
-          <DsButton to="#sang-den" variant="lamp" size="lg">Xem hôm nay có gì</DsButton>
-          <DsButton variant="on-band" size="lg" @click="copyCoupon">
+          <BaseButton to="#sang-den" variant="lamp" size="lg">Xem hôm nay có gì</BaseButton>
+          <BaseButton variant="on-band" size="lg" @click="copyCoupon">
             {{ copied ? 'Đã chép CHOVIET10' : 'Nhập mã CHOVIET10' }}
-          </DsButton>
+          </BaseButton>
         </div>
         <div class="mt-7 flex flex-wrap gap-x-6 gap-y-2 opacity-70">
           <span class="label-xs">140 món tuyển chọn</span>
@@ -169,8 +172,8 @@ const wellOf = (name: string) => ({
   </section>
 
   <section id="sang-den" class="mx-auto w-full max-w-6xl px-4 py-12 sm:px-5">
-    <DsNote v-if="loadError" tone="bad" class="mb-6">{{ loadError }}</DsNote>
-    <DsNote v-if="cartError" tone="bad" class="mb-6">{{ cartError }}</DsNote>
+    <BaseNote v-if="loadError" tone="bad" class="mb-6">{{ loadError }}</BaseNote>
+    <BaseNote v-if="cartError" tone="bad" class="mb-6">{{ cartError }}</BaseNote>
 
     <div class="mb-5 flex flex-wrap items-end justify-between gap-3">
       <div>
@@ -190,7 +193,7 @@ const wellOf = (name: string) => ({
     </div>
 
     <div v-if="loading" class="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
-      <DsSkeleton v-for="index in 8" :key="index" class="h-80" />
+      <BaseSkeleton v-for="index in 8" :key="index" class="h-80" />
     </div>
     <div v-else>
       <div class="grid grid-cols-2 items-start gap-x-4 gap-y-8 md:grid-cols-3 lg:grid-cols-4">
@@ -211,7 +214,7 @@ const wellOf = (name: string) => ({
     </div>
 
     <div class="mt-6 flex justify-center">
-      <DsButton to="/products" variant="outline" size="md">Xem tất cả {{ products.length }} món →</DsButton>
+      <BaseButton to="/products" variant="outline" size="md">Xem tất cả sản phẩm →</BaseButton>
     </div>
   </section>
 
@@ -220,7 +223,7 @@ const wellOf = (name: string) => ({
       <p class="label-xs text-primary">Khám phá theo</p>
       <h2 class="mt-2 mb-6 text-[28px] sm:text-[32px]">Danh mục</h2>
       <div v-if="loading" class="grid gap-3 sm:grid-cols-3 lg:grid-cols-4">
-        <DsSkeleton v-for="index in 4" :key="index" class="h-24" />
+        <BaseSkeleton v-for="index in 4" :key="index" class="h-24" />
       </div>
       <div v-else class="grid gap-3 sm:grid-cols-3 lg:grid-cols-4">
         <RouterLink
@@ -254,10 +257,10 @@ const wellOf = (name: string) => ({
           <h3 class="text-lg">{{ store.name }}</h3>
           <p class="text-muted-foreground mt-1 text-sm">{{ store.items.length }} món đang bán · {{ money(Math.min(...store.items.map((item) => Number(item.price)))) }} trở lên</p>
           <div class="mt-3 flex flex-wrap gap-1.5">
-            <DsPill v-for="item in store.items.slice(0, 3)" :key="item.id">{{ item.name }}</DsPill>
+            <BasePill v-for="item in store.items.slice(0, 3)" :key="item.id">{{ item.name }}</BasePill>
           </div>
         </div>
-        <DsButton :to="`/products?search=${encodeURIComponent(store.name)}`" variant="outline" size="sm">Xem món</DsButton>
+        <BaseButton :to="`/products?search=${encodeURIComponent(store.name)}`" variant="outline" size="sm">Xem món</BaseButton>
       </article>
     </div>
   </section>

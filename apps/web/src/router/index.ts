@@ -34,8 +34,11 @@ const router = createRouter({
   scrollBehavior: () => ({ top: 0 }),
 })
 
-router.beforeEach((to) => {
+router.beforeEach(async (to) => {
   const auth = useAuthStore()
+  // A hard reload reaches this guard before the session is restored; without the wait a
+  // seller would be bounced for having no role yet.
+  await auth.ready()
   if (to.meta.requiresAuth && !auth.isAuthenticated) return { name: 'login', query: { redirect: to.fullPath } }
   if (to.meta.guestOnly && auth.isAuthenticated) return { name: 'home' }
   if (to.meta.role && auth.user?.role !== to.meta.role) return { name: 'home' }

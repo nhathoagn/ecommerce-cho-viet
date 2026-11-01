@@ -1,16 +1,16 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import DsButton from '@/components/ds/DsButton.vue'
-import DsPaper from '@/components/ds/DsPaper.vue'
-import DsInput from '@/components/ds/DsInput.vue'
-import DsLabel from '@/components/ds/DsLabel.vue'
-import DsSelect, { type DsOption } from '@/components/ds/DsSelect.vue'
-import DsTextarea from '@/components/ds/DsTextarea.vue'
-import DsNote from '@/components/ds/DsNote.vue'
-import DsEmpty from '@/components/ds/DsEmpty.vue'
-import DsFieldError from '@/components/ds/DsFieldError.vue'
-import DsFileField from '@/components/ds/DsFileField.vue'
+import BaseButton from '@/components/base/BaseButton.vue'
+import BasePaper from '@/components/base/BasePaper.vue'
+import BaseInput from '@/components/base/BaseInput.vue'
+import BaseLabel from '@/components/base/BaseLabel.vue'
+import BaseSelect, { type SelectOption } from '@/components/base/BaseSelect.vue'
+import BaseTextarea from '@/components/base/BaseTextarea.vue'
+import BaseNote from '@/components/base/BaseNote.vue'
+import BaseEmpty from '@/components/base/BaseEmpty.vue'
+import BaseFieldError from '@/components/base/BaseFieldError.vue'
+import BaseFileField from '@/components/base/BaseFileField.vue'
 import { minLength, required, validate } from '@/lib/form'
 import { productImageUrl, productInitials } from '@/media'
 import { money, pastelWell } from '@/money'
@@ -25,12 +25,13 @@ const seller = useSellerStore()
 const productId = computed(() => (typeof route.params.id === 'string' ? route.params.id : ''))
 const current = computed(() => seller.products.find((product) => product.id === productId.value) ?? null)
 const missing = ref(false)
+const loadError = ref('')
 const categories = ref<Category[]>([])
-const categoryOptions = computed<DsOption[]>(() => [
+const categoryOptions = computed<SelectOption[]>(() => [
   { value: '', label: 'Chưa chọn' },
   ...categories.value.map((category) => ({ value: category.id, label: category.name })),
 ])
-const statusOptions: DsOption[] = [
+const statusOptions: SelectOption[] = [
   { value: 'DRAFT', label: 'Nháp', hint: 'chưa hiện trên trang mua' },
   { value: 'ACTIVE', label: 'Đang bán' },
   { value: 'INACTIVE', label: 'Đã ẩn' },
@@ -61,8 +62,13 @@ const form = reactive({
 const preview = computed(() => (form.imageKey ? productImageUrl({ images: [{ objectKey: form.imageKey }] }) : ''))
 
 onMounted(async () => {
-  await seller.ensure()
-  categories.value = await catalogApi.categories()
+  try {
+    await seller.ensure()
+    categories.value = await catalogApi.categories()
+  } catch (reason) {
+    loadError.value = messageOf(reason)
+    return
+  }
   if (!productId.value) return
   if (!current.value) {
     missing.value = true
@@ -139,26 +145,33 @@ async function save() {
 
 <template>
   <div class="mx-auto w-full max-w-6xl px-4 py-5 sm:px-5">
-    <DsPaper v-if="missing">
-      <DsEmpty class="border-0 py-16">
+    <BasePaper v-if="loadError">
+      <BaseNote tone="bad" class="m-5">
+        {{ loadError }}
+        <button type="button" class="ml-2 font-semibold underline" @click="$router.go(0)">Thử lại</button>
+      </BaseNote>
+    </BasePaper>
+
+    <BasePaper v-else-if="missing">
+      <BaseEmpty class="border-0 py-16">
         <p class="text-xl">Không tìm thấy sản phẩm</p>
         <p class="text-muted-foreground max-w-xs text-sm leading-relaxed">Sản phẩm có thể đã bị xoá khỏi gian hàng.</p>
-        <DsButton to="/seller/products" variant="primary" size="sm">Về danh mục</DsButton>
-      </DsEmpty>
-    </DsPaper>
+        <BaseButton to="/seller/products" variant="primary" size="sm">Về danh mục</BaseButton>
+      </BaseEmpty>
+    </BasePaper>
 
-    <DsPaper v-else class="overflow-hidden">
+    <BasePaper v-else class="overflow-hidden">
       <header class="border-rule flex flex-wrap items-center justify-between gap-2 border-b px-4 py-3">
         <h2 class="text-lg">{{ productId ? 'Sửa sản phẩm' : 'Thêm sản phẩm' }}</h2>
-        <DsButton to="/seller/products" variant="quiet" size="sm">← Danh mục</DsButton>
+        <BaseButton to="/seller/products" variant="quiet" size="sm">← Danh mục</BaseButton>
       </header>
 
       <form class="grid gap-4 p-4 md:grid-cols-2" novalidate @submit.prevent="save">
-        <DsNote v-if="error" tone="bad" class="md:col-span-2">{{ error }}</DsNote>
+        <BaseNote v-if="error" tone="bad" class="md:col-span-2">{{ error }}</BaseNote>
 
         <div class="grid gap-1.5 md:col-span-2">
-          <DsLabel for="productName" required>Tên sản phẩm</DsLabel>
-          <DsInput
+          <BaseLabel for="productName" required>Tên sản phẩm</BaseLabel>
+          <BaseInput
             id="productName"
             v-model="form.name"
             :invalid="!!fieldErrors.productName"
@@ -168,12 +181,12 @@ async function save() {
             placeholder="Ví dụ: Gạo ST25 Sóc Trăng 5kg"
             @input="clearError('productName')"
           />
-          <DsFieldError :message="fieldErrors.productName" />
+          <BaseFieldError :message="fieldErrors.productName" />
         </div>
 
         <div class="grid gap-1.5">
-          <DsLabel for="productSku" required>SKU</DsLabel>
-          <DsInput
+          <BaseLabel for="productSku" required>SKU</BaseLabel>
+          <BaseInput
             id="productSku"
             v-model="form.sku"
             :invalid="!!fieldErrors.productSku"
@@ -183,22 +196,22 @@ async function save() {
             class="num"
             @input="clearError('productSku')"
           />
-          <DsFieldError :message="fieldErrors.productSku" />
+          <BaseFieldError :message="fieldErrors.productSku" />
         </div>
 
         <label class="grid gap-1.5">
           <span class="label-xs text-muted-foreground">Danh mục</span>
-          <DsSelect v-model="form.categoryId" :options="categoryOptions" class="w-full" />
+          <BaseSelect v-model="form.categoryId" :options="categoryOptions" class="w-full" />
         </label>
 
         <div class="grid gap-1.5 md:col-span-2">
-          <DsLabel for="productDescription">Mô tả</DsLabel>
-          <DsTextarea id="productDescription" v-model="form.description" :rows="3" placeholder="Xuất xứ, quy cách, cách dùng…" />
+          <BaseLabel for="productDescription">Mô tả</BaseLabel>
+          <BaseTextarea id="productDescription" v-model="form.description" :rows="3" placeholder="Xuất xứ, quy cách, cách dùng…" />
         </div>
 
         <div class="grid gap-1.5">
-          <DsLabel for="productPrice" required>Giá bán (₫)</DsLabel>
-          <DsInput
+          <BaseLabel for="productPrice" required>Giá bán (₫)</BaseLabel>
+          <BaseInput
             id="productPrice"
             v-model.number="form.price"
             type="number"
@@ -209,17 +222,17 @@ async function save() {
             class="num"
             @input="clearError('productPrice')"
           />
-          <DsFieldError :message="fieldErrors.productPrice" />
+          <BaseFieldError :message="fieldErrors.productPrice" />
         </div>
 
         <div class="grid gap-1.5">
-          <DsLabel for="productCompare">Giá gốc (₫)</DsLabel>
-          <DsInput id="productCompare" v-model.number="form.compareAtPrice" type="number" min="0" step="any" class="num" />
+          <BaseLabel for="productCompare">Giá gốc (₫)</BaseLabel>
+          <BaseInput id="productCompare" v-model.number="form.compareAtPrice" type="number" min="0" step="any" class="num" />
         </div>
 
         <div class="grid gap-1.5">
-          <DsLabel for="productStock">Tồn kho</DsLabel>
-          <DsInput
+          <BaseLabel for="productStock">Tồn kho</BaseLabel>
+          <BaseInput
             id="productStock"
             v-model.number="form.stock"
             type="number"
@@ -228,12 +241,12 @@ async function save() {
             class="num"
             @input="clearError('productStock')"
           />
-          <DsFieldError :message="fieldErrors.productStock" />
+          <BaseFieldError :message="fieldErrors.productStock" />
         </div>
 
         <label class="grid gap-1.5">
           <span class="label-xs text-muted-foreground">Trạng thái</span>
-          <DsSelect v-model="form.status" :options="statusOptions" class="w-full" />
+          <BaseSelect v-model="form.status" :options="statusOptions" class="w-full" />
         </label>
 
         <div class="border-rule flex items-end gap-4 border-t pt-4 md:col-span-2">
@@ -249,8 +262,8 @@ async function save() {
             <template v-else>{{ productInitials(form.name || seller.store?.name || 'CV') }}</template>
           </div>
           <div class="grid flex-1 gap-1.5">
-            <DsLabel>Ảnh sản phẩm</DsLabel>
-            <DsFileField
+            <BaseLabel>Ảnh sản phẩm</BaseLabel>
+            <BaseFileField
               :file-name="form.imageKey"
               :disabled="uploading"
               :label="uploading ? 'Đang tải…' : 'Tải ảnh lên'"
@@ -262,11 +275,11 @@ async function save() {
 
         <!-- Sticky inside the slip: the save action never leaves the screen. -->
         <div class="border-rule bg-paper sticky bottom-0 z-10 -mx-4 -mb-4 mt-1 flex flex-wrap items-center gap-2 border-t px-4 py-3 md:col-span-2">
-          <DsButton type="submit" variant="primary" :disabled="saving || uploading">{{ saving ? 'Đang lưu…' : productId ? 'Lưu thay đổi' : 'Đăng sản phẩm' }}</DsButton>
-          <DsButton to="/seller/products" variant="outline">Huỷ</DsButton>
+          <BaseButton type="submit" variant="primary" :disabled="saving || uploading">{{ saving ? 'Đang lưu…' : productId ? 'Lưu thay đổi' : 'Đăng sản phẩm' }}</BaseButton>
+          <BaseButton to="/seller/products" variant="outline">Huỷ</BaseButton>
           <span v-if="form.price > 0" class="num text-muted-foreground ml-auto text-sm">Hiển thị: {{ money(form.price) }}</span>
         </div>
       </form>
-    </DsPaper>
+    </BasePaper>
   </div>
 </template>

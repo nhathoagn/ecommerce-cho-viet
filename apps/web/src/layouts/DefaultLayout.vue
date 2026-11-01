@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from 'vue'
 import AppHeader from '@/components/AppHeader.vue'
-import DsButton from '@/components/ds/DsButton.vue'
+import BaseButton from '@/components/base/BaseButton.vue'
 import { useAuthStore } from '@/stores/auth'
 
 const auth = useAuthStore()
@@ -86,7 +86,7 @@ onUnmounted(() => window.clearInterval(timer))
         </div>
         <div class="mt-10 flex flex-wrap items-center justify-between gap-3 border-t pt-4 text-xs opacity-60" style="border-color: var(--band-rule)">
           <span>© 2026 Chợ Việt · Đồ Việt, sáng đèn mỗi ngày</span>
-          <DsButton variant="on-band" size="sm" @click="scrollTop">Về đầu trang ↑</DsButton>
+          <BaseButton variant="on-band" size="sm" @click="scrollTop">Về đầu trang ↑</BaseButton>
         </div>
       </div>
     </footer>

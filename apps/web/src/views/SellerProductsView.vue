@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
-import DsButton from '@/components/ds/DsButton.vue'
-import DsPaper from '@/components/ds/DsPaper.vue'
-import DsDialog from '@/components/ds/DsDialog.vue'
-import DsEmpty from '@/components/ds/DsEmpty.vue'
-import DsFieldError from '@/components/ds/DsFieldError.vue'
-import DsInput from '@/components/ds/DsInput.vue'
-import DsLabel from '@/components/ds/DsLabel.vue'
-import DsNote from '@/components/ds/DsNote.vue'
+import BaseButton from '@/components/base/BaseButton.vue'
+import BasePaper from '@/components/base/BasePaper.vue'
+import BaseDialog from '@/components/base/BaseDialog.vue'
+import BaseEmpty from '@/components/base/BaseEmpty.vue'
+import BaseFieldError from '@/components/base/BaseFieldError.vue'
+import BaseInput from '@/components/base/BaseInput.vue'
+import BaseLabel from '@/components/base/BaseLabel.vue'
+import BaseNote from '@/components/base/BaseNote.vue'
 import StatusPill from '@/components/StatusPill.vue'
 import { productImageUrl, productInitials } from '@/media'
 import { money, pastelWell } from '@/money'
@@ -118,14 +118,14 @@ const wellOf = (name: string) => ({
 
 <template>
   <div class="mx-auto grid w-full max-w-6xl gap-4 px-4 py-5 sm:px-5 lg:grid-cols-[1fr_428px]">
-    <DsPaper class="overflow-hidden">
+    <BasePaper class="overflow-hidden">
       <header class="border-rule flex flex-wrap items-center justify-between gap-3 border-b px-4 py-3">
         <h2 class="text-lg">Danh mục</h2>
         <span class="label-xs num text-muted-foreground">{{ seller.products.length }} sản phẩm</span>
       </header>
 
       <div class="border-rule flex flex-wrap items-center gap-1.5 border-b px-4 py-2.5">
-        <DsInput v-model="term" class="h-9 min-w-0 basis-full px-2.5 text-[13px] sm:basis-0 sm:flex-1" placeholder="Tìm theo tên hoặc SKU…" aria-label="Tìm sản phẩm" />
+        <BaseInput v-model="term" class="h-9 min-w-0 basis-full px-2.5 text-[13px] sm:basis-0 sm:flex-1" placeholder="Tìm theo tên hoặc SKU…" aria-label="Tìm sản phẩm" />
         <button
           v-for="item in filters"
           :key="item.key"
@@ -136,11 +136,11 @@ const wellOf = (name: string) => ({
         >{{ item.label }}</button>
       </div>
 
-      <DsEmpty v-if="!rows.length" class="border-0">
+      <BaseEmpty v-if="!rows.length" class="border-0">
         <p class="text-[15px] font-bold">{{ seller.products.length ? 'Không có sản phẩm khớp' : 'Chưa có sản phẩm' }}</p>
         <p class="text-muted-foreground max-w-xs text-xs leading-relaxed">{{ seller.products.length ? 'Thử từ khoá khác hoặc bỏ bộ lọc.' : 'Đăng món đầu tiên để gian hàng mở cửa.' }}</p>
-        <DsButton to="/seller/products/new" variant="outline" size="sm">Thêm sản phẩm</DsButton>
-      </DsEmpty>
+        <BaseButton to="/seller/products/new" variant="outline" size="sm">Thêm sản phẩm</BaseButton>
+      </BaseEmpty>
 
       <ul v-else>
         <li v-for="product in rows" :key="product.id">
@@ -166,9 +166,9 @@ const wellOf = (name: string) => ({
           </button>
         </li>
       </ul>
-    </DsPaper>
+    </BasePaper>
 
-    <DsPaper v-if="selected" class="hidden h-fit overflow-hidden lg:block">
+    <BasePaper v-if="selected" class="hidden h-fit overflow-hidden lg:block">
       <div class="flex flex-col gap-3 p-4">
         <div class="grid h-40 place-items-center overflow-hidden rounded-[var(--radius-sm)] text-4xl font-extrabold" :style="wellOf(selected.name)">
           <img v-if="productImageUrl(selected)" :src="productImageUrl(selected)" :alt="selected.name" class="size-full object-cover" />
@@ -190,7 +190,7 @@ const wellOf = (name: string) => ({
           </p>
         </div>
 
-        <DsNote v-if="error" tone="bad">{{ error }}</DsNote>
+        <BaseNote v-if="error" tone="bad">{{ error }}</BaseNote>
         <p v-if="notice" class="text-muted-foreground text-xs">{{ notice }}</p>
 
         <div>
@@ -206,40 +206,40 @@ const wellOf = (name: string) => ({
 
         <form class="grid grid-cols-2 gap-2" novalidate @submit.prevent="saveQuick">
           <div class="grid gap-1.5">
-            <DsLabel for="quickPrice">Giá bán</DsLabel>
-            <DsInput id="quickPrice" v-model.number="quick.price" type="number" min="0" step="any" class="num h-9 text-[13px]" :invalid="!!quickErrors.price" @input="quickErrors.price = ''" />
+            <BaseLabel for="quickPrice">Giá bán</BaseLabel>
+            <BaseInput id="quickPrice" v-model.number="quick.price" type="number" min="0" step="any" class="num h-9 text-[13px]" :invalid="!!quickErrors.price" @input="quickErrors.price = ''" />
           </div>
           <div class="grid gap-1.5">
-            <DsLabel for="quickStock">Tồn kho</DsLabel>
-            <DsInput id="quickStock" v-model.number="quick.stock" type="number" min="0" step="any" class="num h-9 text-[13px]" :invalid="!!quickErrors.stock" @input="quickErrors.stock = ''" />
-            <DsFieldError :message="quickErrors.stock" class="col-span-1" />
+            <BaseLabel for="quickStock">Tồn kho</BaseLabel>
+            <BaseInput id="quickStock" v-model.number="quick.stock" type="number" min="0" step="any" class="num h-9 text-[13px]" :invalid="!!quickErrors.stock" @input="quickErrors.stock = ''" />
+            <BaseFieldError :message="quickErrors.stock" class="col-span-1" />
           </div>
-          <DsFieldError :message="quickErrors.price" class="col-span-2 -mt-1" />
-          <DsButton type="submit" variant="primary" size="sm" class="col-span-2" :disabled="saving">
+          <BaseFieldError :message="quickErrors.price" class="col-span-2 -mt-1" />
+          <BaseButton type="submit" variant="primary" size="sm" class="col-span-2" :disabled="saving">
             {{ saving ? 'Đang lưu…' : 'Lưu thay đổi' }}
-          </DsButton>
+          </BaseButton>
         </form>
 
         <div class="border-rule flex flex-wrap items-center gap-2 border-t pt-3">
-          <DsButton :to="`/seller/products/${selected.id}`" variant="outline" size="sm" class="flex-1">Sửa sản phẩm</DsButton>
-          <DsButton variant="danger" size="sm" @click="removing = true">Xoá</DsButton>
+          <BaseButton :to="`/seller/products/${selected.id}`" variant="outline" size="sm" class="flex-1">Sửa sản phẩm</BaseButton>
+          <BaseButton variant="danger" size="sm" @click="removing = true">Xoá</BaseButton>
         </div>
       </div>
-    </DsPaper>
+    </BasePaper>
 
-    <DsPaper v-else class="hidden h-fit lg:block">
+    <BasePaper v-else class="hidden h-fit lg:block">
       <p class="text-muted-foreground p-5 text-sm leading-relaxed">Chọn một sản phẩm bên trái để sửa nhanh giá và tồn kho.</p>
-    </DsPaper>
+    </BasePaper>
 
-    <DsDialog v-model:open="removing">
+    <BaseDialog v-model:open="removing">
       <p class="text-xl">Xoá sản phẩm?</p>
       <p class="text-muted-foreground mt-2 text-sm leading-relaxed">
         “{{ selected?.name }}” sẽ bị xoá khỏi gian hàng. Không khôi phục được.
       </p>
       <div class="border-rule mt-5 flex justify-end gap-2 border-t pt-4">
-        <DsButton variant="outline" @click="removing = false">Giữ lại</DsButton>
-        <DsButton variant="danger" @click="remove">Xoá sản phẩm</DsButton>
+        <BaseButton variant="outline" @click="removing = false">Giữ lại</BaseButton>
+        <BaseButton variant="danger" @click="remove">Xoá sản phẩm</BaseButton>
       </div>
-    </DsDialog>
+    </BaseDialog>
   </div>
 </template>

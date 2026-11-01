@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import DsPill from '@/components/ds/DsPill.vue'
+import BasePill from '@/components/base/BasePill.vue'
 
 const props = defineProps<{ status?: string; stock?: number }>()
 
@@ -36,5 +36,5 @@ const tone = computed<Tone>(() => {
 </script>
 
 <template>
-  <DsPill :tone="tone" class="num">{{ label }}</DsPill>
+  <BasePill :tone="tone" class="num">{{ label }}</BasePill>
 </template>

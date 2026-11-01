@@ -313,31 +313,31 @@ The four service blocks under a description are tinted cards — sky for deliver
 
 Disabled drops to 45% and keeps its shape. Loading shows `Đang xử lý…` in tabular numerals, never a spinner.
 
-### Paper slip (`DsPaper` / `slip` utility)
+### Paper slip (`BasePaper` / `slip` utility)
 
 The repeating container: paper fill, 1px rule, 4px radius, slip shadow. Add `lit` for in-stock or selected. Panels pad 20px; product cards pad 10px.
 
-### Pills (`DsPill`)
+### Pills (`BasePill`)
 
 10.5px uppercase, 3px radius, 1px border, tone-specific tint (`ok`, `warn`, `bad`, `lamp`, `ink`, `neutral`). Maximum three per card. Hue carries state, never decoration.
 
-### Field errors (`DsFieldError` + `DsLabel required` + `DsInput :invalid`)
+### Field errors (`BaseFieldError` + `BaseLabel required` + `BaseInput :invalid`)
 
-Browser validation bubbles are banned: every form is `novalidate` and validates in JS (`@/lib/form`). A failed field gets `:invalid` (bad border + 20% bad ring), an inline `DsFieldError` line with a 14px alert icon directly under it, focus moves to the first failing field, and the message names the fix ("Nhập email.", "Số tiền tối thiểu 10.000₫."). Server errors stay a `DsNote tone="bad"` summary at the top of the form. Required fields mark their label with a coral asterisk and nothing else.
+Browser validation bubbles are banned: every form is `novalidate` and validates in JS (`@/lib/form`). A failed field gets `:invalid` (bad border + 20% bad ring), an inline `BaseFieldError` line with a 14px alert icon directly under it, focus moves to the first failing field, and the message names the fix ("Nhập email.", "Số tiền tối thiểu 10.000₫."). Server errors stay a `BaseNote tone="bad"` summary at the top of the form. Required fields mark their label with a coral asterisk and nothing else.
 
-### File field (`DsFileField`)
+### File field (`BaseFileField`)
 
 A ruled paper row: 36px icon tile, file name or hint, and a bordered "Tải ảnh lên" button. The native `<input type="file">` is `sr-only`; its default "Choose File / No file chosen" string never reaches the screen.
 
-### Notes (`DsNote`)
+### Notes (`BaseNote`)
 
 Inline message block used for errors and confirmations: soft tinted fill, 1px border of the same hue, 14px text. Replaces every alert/dialog-based message.
 
-### Inputs (`DsInput`, `DsTextarea`, `DsSelect`, `DsCheckbox`, `DsLabel`)
+### Inputs (`BaseInput`, `BaseTextarea`, `BaseSelect`, `BaseCheckbox`, `BaseLabel`)
 
 44px tall, paper fill, 1px rule-strong border, 4px radius, 14px text. Focus is a 2px coral ring at 25% plus an ember border. Labels sit above the field in `label-xs`.
 
-### Overlays (`DsDialog`, `DsSheet`)
+### Overlays (`BaseDialog`, `BaseSheet`)
 
 Native `<dialog>` elements with an ink backdrop. Everything on paper, no rounded corners beyond 4px. Dialogs are for destructive confirmation and address editing only; browsing never opens a modal.
 
@@ -365,10 +365,10 @@ The same world with the lamps off: ink band header with store identity and three
 
 ### Don't:
 
-- **Don't** import `@/components/ui/*` — that library is deleted; compose from `@/components/ds/*`.
+- **Don't** import `@/components/ui/*` — that library is deleted; compose from `@/components/base/*`.
 - **Don't** use blur, translucency, glass, gradient fills or gradient text.
 - **Don't** round buttons, inputs or tags into pills.
-- **Don't** let the browser render a validation bubble — replace it with `DsFieldError`.
+- **Don't** let the browser render a validation bubble — replace it with `BaseFieldError`.
 - **Don't** put emoji in place of an icon or a label.
 - **Don't** glow anything that is not available or selected.
 - **Don't** fabricate sold counts, ratings, reviews or customer logos; the seeded data has none.

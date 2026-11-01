@@ -3,10 +3,10 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import ProductCard from '@/components/ProductCard.vue'
 import { markFor } from '@/lib/marks'
-import DsButton from '@/components/ds/DsButton.vue'
-import DsEmpty from '@/components/ds/DsEmpty.vue'
-import DsNote from '@/components/ds/DsNote.vue'
-import DsSkeleton from '@/components/ds/DsSkeleton.vue'
+import BaseButton from '@/components/base/BaseButton.vue'
+import BaseEmpty from '@/components/base/BaseEmpty.vue'
+import BaseNote from '@/components/base/BaseNote.vue'
+import BaseSkeleton from '@/components/base/BaseSkeleton.vue'
 import { catalogApi, hasMultipleStores, type Category, type Product } from '@/modules/catalog/catalog.api'
 import { useCartStore } from '@/modules/cart/cart.store'
 import { useAuthStore } from '@/stores/auth'
@@ -26,24 +26,54 @@ const loadError = ref('')
 const multiStore = computed(() => hasMultipleStores(products.value))
 const categoryTabs = computed(() => [{ slug: '', name: 'Tất cả' }, ...categories.value])
 let requestId = 0
+const PAGE_SIZE = 24
+const page = ref(1)
+const hasMore = ref(false)
+const loadingMore = ref(false)
+
+function filters() {
+  return {
+    ...(search.value ? { search: search.value } : {}),
+    ...(selectedCategory.value ? { category: selectedCategory.value } : {}),
+    pageSize: String(PAGE_SIZE),
+  }
+}
 
 async function loadProducts() {
+  page.value = 1
   const id = ++requestId
   loading.value = true
   loadError.value = ''
   try {
-    const next = await catalogApi.products({
-      ...(search.value ? { search: search.value } : {}),
-      ...(selectedCategory.value ? { category: selectedCategory.value } : {}),
-    })
+    const next = await catalogApi.products({ ...filters(), page: '1' })
     if (id !== requestId) return
     products.value = next
+    hasMore.value = next.length === PAGE_SIZE
   } catch {
     if (id !== requestId) return
     products.value = []
+    hasMore.value = false
     loadError.value = 'Không tải được sản phẩm. Vui lòng thử lại.'
   } finally {
     if (id === requestId) loading.value = false
+  }
+}
+
+async function loadMore() {
+  const id = requestId
+  const nextPage = page.value + 1
+  loadingMore.value = true
+  try {
+    const next = await catalogApi.products({ ...filters(), page: String(nextPage) })
+    if (id !== requestId) return
+    products.value = [...products.value, ...next]
+    page.value = nextPage
+    hasMore.value = next.length === PAGE_SIZE
+  } catch {
+    if (id !== requestId) return
+    loadError.value = 'Không tải thêm được sản phẩm. Vui lòng thử lại.'
+  } finally {
+    if (id === requestId) loadingMore.value = false
   }
 }
 
@@ -110,11 +140,11 @@ watch(selectedCategory, (value) => {
       </button>
     </div>
 
-    <DsNote v-if="loadError" tone="bad" class="mb-5">{{ loadError }}</DsNote>
-    <DsNote v-if="cartError" tone="bad" class="mb-5">{{ cartError }}</DsNote>
+    <BaseNote v-if="loadError" tone="bad" class="mb-5">{{ loadError }}</BaseNote>
+    <BaseNote v-if="cartError" tone="bad" class="mb-5">{{ cartError }}</BaseNote>
 
     <div v-if="loading" class="grid grid-cols-2 gap-x-4 gap-y-8 md:grid-cols-3 lg:grid-cols-4">
-      <DsSkeleton v-for="index in 8" :key="index" class="h-80" />
+      <BaseSkeleton v-for="index in 8" :key="index" class="h-80" />
     </div>
     <div v-else-if="products.length" class="grid grid-cols-2 gap-x-4 gap-y-8 md:grid-cols-3 lg:grid-cols-4">
       <ProductCard
@@ -126,10 +156,14 @@ watch(selectedCategory, (value) => {
         @add="addToCart(product)"
       />
     </div>
-    <DsEmpty v-else class="bg-paper">
+    <BaseEmpty v-else class="bg-paper">
       <p class="text-[20px]">Chưa có sản phẩm phù hợp</p>
       <p class="text-muted-foreground max-w-80 text-sm leading-6">Thử từ khoá khác hoặc chọn danh mục khác.</p>
-      <DsButton to="/products" variant="outline" size="sm">Xoá bộ lọc</DsButton>
-    </DsEmpty>
+      <BaseButton to="/products" variant="outline" size="sm">Xoá bộ lọc</BaseButton>
+    </BaseEmpty>
+
+    <div v-if="products.length && hasMore" class="mt-8 flex justify-center">
+      <BaseButton variant="outline" size="md" :loading="loadingMore" @click="loadMore">Xem thêm</BaseButton>
+    </div>
   </section>
 </template>

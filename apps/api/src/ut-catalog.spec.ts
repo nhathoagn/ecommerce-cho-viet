@@ -1,12 +1,12 @@
 import 'reflect-metadata';
 import { readFileSync } from 'node:fs';
-import { createHash, createHmac } from 'node:crypto';
-import { BadRequestException, ConflictException, ForbiddenException, HttpException, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { createHash } from 'node:crypto';
+import { BadRequestException, ForbiddenException, HttpException, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import type { ConfigService } from '@nestjs/config';
 import type { JwtService } from '@nestjs/jwt';
 import type { Logger } from 'nestjs-pino';
 import type { HealthCheckService } from '@nestjs/terminus';
-import { OrderStatus, PaymentStatus, ProductStatus, UserRole, UserStatus, WithdrawalStatus } from '@prisma/client';
+import { OrderStatus, PaymentStatus, ProductStatus, UserRole, UserStatus, WalletTransactionType, WithdrawalStatus } from '@prisma/client';
 import { validate } from 'class-validator';
 import { firstValueFrom, of } from 'rxjs';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
@@ -51,9 +51,6 @@ vi.mock('@aws-sdk/client-s3', () => ({ S3Client: vi.fn(), PutObjectCommand: vi.f
 const validEnv = {
   DATABASE_URL: 'postgresql://postgres:postgres@localhost:5432/ecommerce',
   REDIS_URL: 'redis://localhost:6379',
-  MOMO_ENDPOINT: 'https://test-payment.momo.vn/v2/gateway/api/create',
-  MOMO_REDIRECT_URL: 'http://localhost:5173/payment/result',
-  MOMO_IPN_URL: 'https://example.com/api/payments/momo/ipn',
   CLOUDFLARE_R2_BUCKET_PUBLIC: 'ecommerce-public',
   CLOUDFLARE_R2_BUCKET_PRIVATE: 'ecommerce-private',
 };
@@ -77,14 +74,7 @@ function authService(prisma: unknown) {
 function orders(prisma: unknown) { return new OrdersService(prisma as PrismaService); }
 function seller(prisma: unknown) { return new SellerCatalogService(prisma as PrismaService); }
 function payments(prisma: unknown) {
-  return new PaymentsService(prisma as PrismaService, { get: (key: string) => key === 'MOMO_SECRET_KEY' ? 'test-secret' : 'value' } as unknown as ConfigService);
-}
-function sign(raw: string) { return createHmac('sha256', 'test-secret').update(raw).digest('hex'); }
-function signedIpn(overrides: Record<string, unknown> = {}) {
-  const payload = { partnerCode: 'value', orderId: 'o1', requestId: 'r', amount: 10, orderInfo: 'x', orderType: 'x', transId: 1, resultCode: 0, message: 'ok', payType: 'qr', responseTime: 1, extraData: '', signature: '', ...overrides };
-  const raw = `accessKey=value&amount=${payload.amount}&extraData=${payload.extraData}&message=${payload.message}&orderId=${payload.orderId}&orderInfo=${payload.orderInfo}&orderType=${payload.orderType}&partnerCode=${payload.partnerCode}&payType=${payload.payType}&requestId=${payload.requestId}&responseTime=${payload.responseTime}&resultCode=${payload.resultCode}&transId=${payload.transId}`;
-  payload.signature = sign(raw);
-  return payload;
+  return new PaymentsService(prisma as PrismaService);
 }
 async function props(dto: object) { return (await validate(dto)).map((error) => error.property); }
 async function intercept(url: string, value: unknown) {
@@ -126,7 +116,7 @@ async function run(n: number) {
     return;
   }
   if (n >= 2 && n <= 15) {
-    const key = required[Math.floor((n - 2) / 2)]!;
+    const key = required[Math.floor((n - 2) / 2) % required.length]!;
     const input = { ...validEnv, ...(n % 2 === 1 ? { [key]: '' } : {}) };
     if (n % 2 === 0) delete input[key as keyof typeof input];
     expect(() => validateEnv(input)).toThrow(key);
@@ -134,7 +124,9 @@ async function run(n: number) {
   }
   if (n >= 16 && n <= 18) {
     const value = ['development', 'test', 'production'][n - 16]!;
-    expect(validateEnv({ ...validEnv, NODE_ENV: value }).NODE_ENV).toBe(value);
+    // production refuses the development placeholder secrets, so it needs real ones.
+    const realSecrets = { JWT_ACCESS_SECRET: 'a'.repeat(32), JWT_REFRESH_SECRET: 'b'.repeat(32), OPS_API_KEY: 'c'.repeat(32) };
+    expect(validateEnv({ ...validEnv, ...(value === 'production' ? realSecrets : {}), NODE_ENV: value }).NODE_ENV).toBe(value);
     return;
   }
   if (n >= 19 && n <= 21) {
@@ -181,16 +173,24 @@ async function run(n: number) {
   if (n === 55) { expect(validateEnv({ ...validEnv, JWT_ACCESS_TTL_SECONDS: 1 }).JWT_ACCESS_TTL_SECONDS).toBe(1); return; }
   if (n === 56) { expect(validateEnv(validEnv).JWT_ACCESS_TTL_SECONDS).toBe(900); return; }
   if (n === 57) { expect(validateEnv(validEnv).JWT_REFRESH_TTL_SECONDS).toBe(2592000); return; }
-  if (n >= 58 && n <= 64) {
-    const key = ['REDIS_URL','MOMO_ENDPOINT','MOMO_REDIRECT_URL','MOMO_IPN_URL','WEB_URL','MOMO_QUERY_ENDPOINT','MOMO_REFUND_ENDPOINT'][n - 58]!;
-    expect(validateEnv({ ...validEnv, [key]: 'localhost:6379' })[key]).toBe('localhost:6379');
+  if (n === 58 || n === 59) {
+    const key = n === 58 ? 'REDIS_URL' : 'WEB_URL';
+    expect(validateEnv({ ...validEnv, [key]: 'http://ok.example' })[key]).toBe('http://ok.example');
     expect(() => validateEnv({ ...validEnv, [key]: 'not a uri' })).toThrow(key);
+    return;
+  }
+  if (n >= 60 && n <= 64) {
+    const key = ['DATABASE_URL', 'REDIS_URL', 'WEB_URL', 'CLOUDFLARE_R2_BUCKET_PUBLIC', 'CLOUDFLARE_R2_BUCKET_PRIVATE'][n - 60]!;
+    expect(() => validateEnv({ ...validEnv, [key]: '' })).toThrow(key);
     return;
   }
   if (n === 65) { expect(validateEnv(validEnv).WEB_URL).toBe('http://localhost:5173'); return; }
   if (n >= 66 && n <= 72) {
-    const key = ['MOMO_PARTNER_CODE','MOMO_ACCESS_KEY','MOMO_SECRET_KEY','CLOUDFLARE_ACCOUNT_ID','CLOUDFLARE_R2_ACCESS_KEY_ID','CLOUDFLARE_R2_SECRET_ACCESS_KEY','CLOUDFLARE_R2_PUBLIC_URL'][n - 66]!;
-    expect(validateEnv({ ...validEnv, [key]: '' })[key]).toBe('');
+    const key = ['CLOUDFLARE_ACCOUNT_ID', 'CLOUDFLARE_R2_ACCESS_KEY_ID', 'CLOUDFLARE_R2_SECRET_ACCESS_KEY', 'CLOUDFLARE_R2_PUBLIC_URL', 'CLOUDFLARE_ACCOUNT_ID', 'JWT_ACCESS_SECRET', 'OPS_API_KEY'][n - 66]!;
+    if (n <= 69) { expect(validateEnv({ ...validEnv, [key]: '' })[key]).toBe(''); return; }
+    // The three dev secrets fall back to a placeholder outside production and are refused inside it.
+    if (n === 70) { expect(validateEnv(validEnv).JWT_ACCESS_SECRET).toBe('development-access-secret'); return; }
+    expect(() => validateEnv({ ...validEnv, NODE_ENV: 'production' })).toThrow(n === 71 ? /JWT_ACCESS_SECRET/ : /OPS_API_KEY/);
     return;
   }
   if (n === 73) { expect(validateEnv({ ...validEnv, EXTRA: 'kept' }).EXTRA).toBe('kept'); return; }
@@ -799,81 +799,78 @@ async function run(n: number) {
     if (n === 356) expect(create.mock.calls[0]?.[0].data.minOrderAmount).toBeDefined();
     return;
   }
-  if (n >= 357 && n <= 371 || n === 499) {
+  if ((n >= 357 && n <= 371) || n === 499) {
+    const pending = { status: OrderStatus.PENDING_PAYMENT, totalAmount: 10, code: 'CV' };
     if (n === 357) { await expect(payments({ order: { findFirst: vi.fn().mockResolvedValue(null) } }).create('u1', 'o1')).rejects.toBeInstanceOf(NotFoundException); return; }
     if (n >= 358 && n <= 366) {
       await expect(payments({ order: { findFirst: vi.fn().mockResolvedValue({ status: orderStatuses[n - 357] }) } }).create('u1', 'o1')).rejects.toThrow('Order is not awaiting payment');
       return;
     }
     if (n === 367) {
-      await expect(payments({ order: { findFirst: vi.fn().mockResolvedValue({ status: OrderStatus.PENDING_PAYMENT, totalAmount: 10, code: 'CV' }) }, payment: { findUnique: vi.fn().mockResolvedValue({ status: PaymentStatus.SUCCESS }) } }).create('u1', 'o1')).rejects.toThrow('Order already paid');
+      await expect(payments({ order: { findFirst: vi.fn().mockResolvedValue(pending) }, payment: { findUnique: vi.fn().mockResolvedValue({ status: PaymentStatus.SUCCESS }) } }).create('u1', 'o1')).rejects.toThrow('Order already paid');
       return;
     }
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: n !== 370, json: async () => n === 368 ? { resultCode: 1001, message: 'rejected' } : n === 369 ? { resultCode: 1001 } : { resultCode: 0, payUrl: 'https://pay' } }));
-    if (n === 368 || n === 369 || n === 370) {
-      await expect(payments({ order: { findFirst: vi.fn().mockResolvedValue({ status: OrderStatus.PENDING_PAYMENT, totalAmount: 10, code: 'CV' }) }, payment: { findUnique: vi.fn().mockResolvedValue(null) } }).create('u1', 'o1')).rejects.toThrow(n === 368 ? 'rejected' : n === 369 ? 'MoMo rejected payment request' : 'MoMo gateway unavailable');
-      vi.unstubAllGlobals();
-      return;
-    }
-    const upsert = vi.fn().mockResolvedValue({ id: 'pay', payUrl: 'https://pay' });
-    const result = await payments({ order: { findFirst: vi.fn().mockResolvedValue({ status: OrderStatus.PENDING_PAYMENT, totalAmount: 10, code: 'CV' }) }, payment: { findUnique: vi.fn().mockResolvedValue(n === 371 ? { status: PaymentStatus.PENDING, requestId: 'req-1' } : null), upsert } }).create('u1', 'o1');
-    if (n === 371) expect(result.requestId).toBe('req-1');
+    // No provider call survives: create only parks a PENDING row.
+    const upsert = vi.fn().mockResolvedValue({ id: 'pay', status: PaymentStatus.PENDING });
+    const result = await payments({ order: { findFirst: vi.fn().mockResolvedValue(pending) }, payment: { findUnique: vi.fn().mockResolvedValue(n === 371 ? { status: PaymentStatus.PENDING } : null), upsert } }).create('u1', 'o1');
+    expect(upsert).toHaveBeenCalledTimes(1);
+    expect(result.status).toBe(PaymentStatus.PENDING);
+    if (n === 368) expect(upsert.mock.calls[0]?.[0].create.requestId).toMatch(/[0-9a-f-]{36}/);
+    if (n === 369) expect(upsert.mock.calls[0]?.[0].create.amount).toBe(10);
+    if (n === 370) expect(upsert.mock.calls[0]?.[0].update.status).toBe(PaymentStatus.PENDING);
+    if (n === 371) { expect(upsert.mock.calls[0]?.[0].where).toEqual({ orderId: 'o1' }); expect(result.paymentId).toBe('pay'); }
     if (n === 499) expect(upsert.mock.calls[0]?.[0].create.amount).toBeDefined();
-    vi.unstubAllGlobals();
     return;
   }
-  if (n >= 372 && n <= 380 || n === 491) {
+  if ((n >= 372 && n <= 380) || n === 491) {
+    const pending = { status: OrderStatus.PENDING_PAYMENT, totalAmount: 10, code: 'CV', store: { sellerId: 'seller-1' } };
     if (n === 372) {
       const findFirst = vi.fn();
       await payments({ payment: { findFirst } }).status('u1', 'o1');
       expect(findFirst).toHaveBeenCalledWith({ where: { orderId: 'o1', order: { buyerId: 'u1' } } });
       return;
     }
-    if (n === 373) { await expect(payments({ payment: { findFirst: vi.fn().mockResolvedValue(null) } }).query('u1', 'o1')).rejects.toThrow('Payment not found'); return; }
-    if (n === 374) { await expect(payments({}).handleIpn({ ...signedIpn(), signature: 'bad' })).rejects.toThrow('Invalid MoMo signature'); return; }
-    if (n === 375 || n === 376 || n === 377) {
-      const payment = n === 375 ? null : { id: 'pay', requestId: n === 376 ? 'other' : 'r', amount: n === 377 ? 99 : 10, status: PaymentStatus.PENDING };
-      await expect(payments({ payment: { findUnique: vi.fn().mockResolvedValue(payment) } }).handleIpn(signedIpn())).rejects.toThrow('Payment does not match order');
-      return;
-    }
-    if (n === 378) {
-      const update = vi.fn();
-      await expect(payments({ payment: { findUnique: vi.fn().mockResolvedValue({ id: 'pay', requestId: 'r', amount: 10, status: PaymentStatus.SUCCESS }), update } }).handleIpn(signedIpn())).resolves.toEqual({ resultCode: 0, message: 'Received' });
-      expect(update).not.toHaveBeenCalled();
-      return;
-    }
-    if (n === 379) {
-      const update = vi.fn();
-      const payload = signedIpn({ resultCode: 1006 });
-      payload.signature = sign(`accessKey=value&amount=${payload.amount}&extraData=${payload.extraData}&message=${payload.message}&orderId=${payload.orderId}&orderInfo=${payload.orderInfo}&orderType=${payload.orderType}&partnerCode=${payload.partnerCode}&payType=${payload.payType}&requestId=${payload.requestId}&responseTime=${payload.responseTime}&resultCode=${payload.resultCode}&transId=${payload.transId}`);
-      await payments({ payment: { findUnique: vi.fn().mockResolvedValue({ id: 'pay', requestId: 'r', amount: 10, status: PaymentStatus.PENDING }), update } }).handleIpn(payload);
-      expect(update).toHaveBeenCalledWith(expect.objectContaining({ data: { status: PaymentStatus.FAILED, resultCode: 1006 } }));
-      return;
-    }
-    const walletUpsert = vi.fn().mockResolvedValue({ id: 'wallet' });
-    const tx = { sellerWallet: { upsert: walletUpsert, update: vi.fn() }, payment: { update: vi.fn() }, order: { update: vi.fn() }, walletTransaction: { create: vi.fn() } };
-    await payments({ payment: { findUnique: vi.fn().mockResolvedValue({ id: 'pay', requestId: 'r', amount: 10, status: PaymentStatus.PENDING, orderId: 'o1', order: { code: 'CV', store: { sellerId: 'seller-1' } } }) }, $transaction: (fn: (value: typeof tx) => unknown) => fn(tx) }).handleIpn(signedIpn());
-    expect(walletUpsert).toHaveBeenCalledWith(expect.objectContaining({ where: { sellerId: 'seller-1' } }));
+    if (n === 373) { await expect(payments({ order: { findFirst: vi.fn().mockResolvedValue(null) } }).confirm('u1', 'o1')).rejects.toThrow('Order not found'); return; }
+    if (n === 374) { await expect(payments({ order: { findFirst: vi.fn().mockResolvedValue({ status: OrderStatus.PAID }) } }).confirm('u1', 'o1')).rejects.toThrow('Order is not awaiting payment'); return; }
+    const wallet = { id: 'wallet' };
+    const tx = {
+      payment: { updateMany: vi.fn().mockResolvedValue({ count: n === 375 ? 0 : 1 }), findUniqueOrThrow: vi.fn().mockResolvedValue({ id: 'pay', status: PaymentStatus.SUCCESS }) },
+      sellerWallet: { upsert: vi.fn().mockResolvedValue(wallet), update: vi.fn() },
+      order: { update: vi.fn() },
+      walletTransaction: { create: vi.fn() },
+    };
+    const run = () => payments({ order: { findFirst: vi.fn().mockResolvedValue(pending) }, $transaction: (fn: (value: typeof tx) => unknown) => fn(tx) }).confirm('u1', 'o1');
+    if (n === 375) { await expect(run()).rejects.toThrow('Order already paid'); return; }
+    await run();
+    // The claim is conditional, so a second confirm cannot credit the wallet twice.
+    expect(tx.payment.updateMany).toHaveBeenCalledWith(expect.objectContaining({ where: { orderId: 'o1', status: { not: PaymentStatus.SUCCESS } } }));
+    if (n === 376) expect(tx.walletTransaction.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ reference: 'ORDER:o1' }) }));
+    if (n === 377) expect(tx.sellerWallet.update).toHaveBeenCalledWith(expect.objectContaining({ data: { availableBalance: { increment: 10 } } }));
+    if (n === 378) expect(tx.order.update).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ status: OrderStatus.PAID }) }));
+    if (n === 379) expect(tx.sellerWallet.upsert).toHaveBeenCalledWith(expect.objectContaining({ where: { sellerId: 'seller-1' } }));
+    if (n === 380) expect(tx.walletTransaction.create).toHaveBeenCalledTimes(1);
+    if (n === 491) expect(tx.payment.updateMany).toHaveBeenCalledTimes(1);
     return;
   }
   if (n >= 381 && n <= 389) {
-    if (n <= 383) {
-      const payment = n === 381 ? null : n === 382 ? { status: PaymentStatus.PENDING } : { status: PaymentStatus.SUCCESS, providerTransactionId: null };
-      await expect(payments({ payment: { findFirst: vi.fn().mockResolvedValue(payment) } }).refund('s1', 'o1')).rejects.toThrow('Successful payment required');
-      return;
-    }
-    const payment = { id: 'pay', status: PaymentStatus.SUCCESS, providerTransactionId: 'tx', amount: 100000, refundedAmount: 40000, order: { code: 'CV', store: { sellerId: 's1' } } };
-    if (n <= 386) {
+    const payment = { id: 'pay', status: PaymentStatus.SUCCESS, amount: 100000, refundedAmount: 40000, order: { code: 'CV', store: { sellerId: 's1' } } };
+    if (n === 381) { await expect(payments({ payment: { findFirst: vi.fn().mockResolvedValue(null) } }).refund('s1', 'o1')).rejects.toThrow('Successful payment required'); return; }
+    if (n === 382) { await expect(payments({ payment: { findFirst: vi.fn().mockResolvedValue({ status: PaymentStatus.PENDING }) } }).refund('s1', 'o1')).rejects.toThrow('Successful payment required'); return; }
+    if (n >= 384 && n <= 386) {
       await expect(payments({ payment: { findFirst: vi.fn().mockResolvedValue(payment) } }).refund('s1', 'o1', n === 384 ? 0 : n === 385 ? -1 : 70000)).rejects.toThrow('Invalid refund amount');
       return;
     }
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => ({ resultCode: n === 389 ? 9 : 0, message: 'no' }) }));
-    const tx = { sellerWallet: { upsert: vi.fn().mockResolvedValue({ id: 'w', availableBalance: n === 388 ? 1 : 100000 }), update: vi.fn() }, payment: { update: vi.fn() }, order: { update: vi.fn() }, walletTransaction: { create: vi.fn() } };
+    const tx = {
+      sellerWallet: { upsert: vi.fn().mockResolvedValue({ id: 'w', availableBalance: n === 388 ? 1 : 100000 }), update: vi.fn() },
+      payment: { update: vi.fn() }, order: { update: vi.fn() }, walletTransaction: { create: vi.fn().mockResolvedValue({ id: 'wt' }) },
+    };
+    // No providerTransactionId in the payment: a local refund must not need one.
     const result = payments({ payment: { findFirst: vi.fn().mockResolvedValue(payment) }, $transaction: (fn: (value: typeof tx) => unknown) => fn(tx) }).refund('s1', 'o1', 60000);
-    if (n === 389) await expect(result).rejects.toThrow('no');
-    else if (n === 388) await expect(result).rejects.toThrow('Insufficient seller balance for refund');
-    else await expect(result).resolves.toBeDefined();
-    vi.unstubAllGlobals();
+    if (n === 388) { await expect(result).rejects.toThrow('Insufficient seller balance for refund'); return; }
+    await expect(result).resolves.toEqual(expect.objectContaining({ refundedAmount: 100000 }));
+    if (n === 383) expect(tx.walletTransaction.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ type: WalletTransactionType.REFUND_DEBIT }) }));
+    if (n === 387) expect(tx.payment.update).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ status: PaymentStatus.REFUNDED }) }));
+    if (n === 389) expect(tx.sellerWallet.update).toHaveBeenCalledWith(expect.objectContaining({ data: { availableBalance: { decrement: expect.anything() } } }));
     return;
   }
   if (n >= 390 && n <= 393) {

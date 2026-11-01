@@ -1,20 +1,10 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref } from 'vue'
+import { useDialogOpen } from '@/composables/useDialogOpen'
 
 const open = defineModel<boolean>('open', { default: false })
 const el = ref<HTMLDialogElement | null>(null)
-
-// flush:'post' + watching the element keeps this correct when the dialog mounts
-// in the same tick the parent flips the flag.
-watch([open, el], ([value, dialog]) => {
-  if (!dialog) return
-  if (value && !dialog.open) dialog.showModal()
-  if (!value && dialog.open) dialog.close()
-}, { immediate: true, flush: 'post' })
-
-function onBackdrop(event: MouseEvent) {
-  if (event.target === el.value) open.value = false
-}
+const { onBackdrop } = useDialogOpen(open, el)
 </script>
 
 <template>

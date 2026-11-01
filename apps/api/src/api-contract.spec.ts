@@ -1,4 +1,5 @@
 import { Test } from '@nestjs/testing';
+import { PrismaService } from './database/prisma.service.js';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import type { INestApplication } from '@nestjs/common';
@@ -37,7 +38,7 @@ const frontendContracts = [
   ['get', '/api/orders'],
   ['post', '/api/orders'],
   ['post', '/api/orders/{id}/cancel'],
-  ['post', '/api/payments/momo/create/{orderId}'],
+  ['post', '/api/payments/{orderId}'],
   ['get', '/api/payments/{orderId}/status'],
   ['get', '/api/seller/dashboard'],
   ['get', '/api/seller/wallet'],
@@ -48,7 +49,12 @@ describe('frontend API contract', () => {
   let app: INestApplication;
 
   beforeAll(async () => {
-    const module = await Test.createTestingModule({ imports: [AppModule] }).compile();
+    // The contract only needs the module graph and its routes. A stub keeps the suite
+    // runnable on a machine with no Postgres.
+    const module = await Test.createTestingModule({ imports: [AppModule] })
+      .overrideProvider(PrismaService)
+      .useValue({ onModuleInit: async () => {}, onModuleDestroy: async () => {} })
+      .compile();
     app = module.createNestApplication();
     app.setGlobalPrefix('api');
     await app.init();

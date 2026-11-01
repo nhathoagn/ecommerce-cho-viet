@@ -4,11 +4,15 @@ import { validateEnv } from './env.validation.js';
 const validEnv = {
   DATABASE_URL: 'postgresql://postgres:postgres@localhost:5432/ecommerce',
   REDIS_URL: 'redis://localhost:6379',
-  MOMO_ENDPOINT: 'https://test-payment.momo.vn/v2/gateway/api/create',
-  MOMO_REDIRECT_URL: 'http://localhost:5173/payment/result',
-  MOMO_IPN_URL: 'https://example.com/api/payments/momo/ipn',
   CLOUDFLARE_R2_BUCKET_PUBLIC: 'ecommerce-public',
   CLOUDFLARE_R2_BUCKET_PRIVATE: 'ecommerce-private',
+};
+
+/** Production refuses the development placeholder secrets. */
+const productionSecrets = {
+  JWT_ACCESS_SECRET: 'a'.repeat(32),
+  JWT_REFRESH_SECRET: 'b'.repeat(32),
+  OPS_API_KEY: 'c'.repeat(32),
 };
 
 const required = Object.keys(validEnv);
@@ -46,12 +50,19 @@ describe('validateEnv', () => {
     expect(() => validateEnv({ ...validEnv, [key]: '' })).toThrow(key);
   });
 
-  it.each(['development', 'test', 'production'])(
-    'accepts NODE_ENV %s',
-    (value) => {
-      expect(validateEnv({ ...validEnv, NODE_ENV: value }).NODE_ENV).toBe(value);
-    },
-  );
+  it.each(['development', 'test'])('accepts NODE_ENV %s', (value) => {
+    expect(validateEnv({ ...validEnv, NODE_ENV: value }).NODE_ENV).toBe(value);
+  });
+
+  it('accepts NODE_ENV production when the secrets are real', () => {
+    expect(validateEnv({ ...validEnv, ...productionSecrets, NODE_ENV: 'production' }).NODE_ENV).toBe('production');
+  });
+
+  it.each(Object.keys(productionSecrets))('refuses the development placeholder %s in production', (key) => {
+    const input = { ...validEnv, ...productionSecrets, NODE_ENV: 'production' };
+    delete (input as Record<string, unknown>)[key];
+    expect(() => validateEnv(input)).toThrow(key);
+  });
 
   it.each(['staging', '', '1'])('rejects NODE_ENV %j', (value) => {
     expect(() => validateEnv({ ...validEnv, NODE_ENV: value })).toThrow('NODE_ENV');
@@ -116,22 +127,11 @@ describe('validateEnv', () => {
     ).toBe(1);
   });
 
-  it.each([
-    'REDIS_URL',
-    'MOMO_ENDPOINT',
-    'MOMO_REDIRECT_URL',
-    'MOMO_IPN_URL',
-    'WEB_URL',
-    'MOMO_QUERY_ENDPOINT',
-    'MOMO_REFUND_ENDPOINT',
-  ])('rejects a non-URI %s', (key) => {
+  it.each(['REDIS_URL', 'WEB_URL'])('rejects a non-URI %s', (key) => {
     expect(() => validateEnv({ ...validEnv, [key]: 'not a uri' })).toThrow(key);
   });
 
   it.each([
-    'MOMO_PARTNER_CODE',
-    'MOMO_ACCESS_KEY',
-    'MOMO_SECRET_KEY',
     'CLOUDFLARE_ACCOUNT_ID',
     'CLOUDFLARE_R2_ACCESS_KEY_ID',
     'CLOUDFLARE_R2_SECRET_ACCESS_KEY',

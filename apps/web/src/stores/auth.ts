@@ -1,9 +1,8 @@
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import { authApi, type LoginPayload, type RegisterPayload, type User } from '../api/auth'
-import { TOKEN_KEY } from '../api/client'
+import { REFRESH_KEY, TOKEN_KEY } from '../api/client'
 
-const REFRESH_KEY = 'cho-viet-refresh-token'
 const USER_KEY = 'cho-viet-user'
 
 function savedUser(): User | null {
@@ -54,6 +53,13 @@ export const useAuthStore = defineStore('auth', () => {
     catch (reason: unknown) { if (statusOf(reason) === 401) clear() }
   }
 
+  /** Bootstraps the session once; the router awaits this so a role guard sees the real user. */
+  let booted: Promise<void> | null = null
+  function ready() {
+    booted ??= fetchUser()
+    return booted
+  }
+
   async function logout() {
     const refreshToken = localStorage.getItem(REFRESH_KEY) ?? undefined
     clear()
@@ -62,7 +68,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   function setUser(value: User) { user.value = value; localStorage.setItem(USER_KEY, JSON.stringify(value)) }
 
-  return { user, token, loading, error, isAuthenticated, isSeller, login, register, logout, fetchUser, clear, setUser }
+  return { user, token, loading, error, isAuthenticated, isSeller, login, register, logout, fetchUser, ready, clear, setUser }
 })
 
 function apiMessage(value: unknown): string {

@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
-import DsButton from '@/components/ds/DsButton.vue'
-import DsPaper from '@/components/ds/DsPaper.vue'
-import DsEmpty from '@/components/ds/DsEmpty.vue'
-import DsNote from '@/components/ds/DsNote.vue'
+import BaseButton from '@/components/base/BaseButton.vue'
+import BasePaper from '@/components/base/BasePaper.vue'
+import BaseEmpty from '@/components/base/BaseEmpty.vue'
+import BaseNote from '@/components/base/BaseNote.vue'
 import StatusPill from '@/components/StatusPill.vue'
 import { money } from '@/money'
 import { messageOf } from '@/stores/auth'
@@ -56,7 +56,7 @@ onMounted(() => seller.ensure())
 
 <template>
   <div class="mx-auto w-full max-w-6xl px-4 py-5 sm:px-5">
-    <DsPaper class="overflow-hidden">
+    <BasePaper class="overflow-hidden">
       <header class="border-rule flex flex-wrap items-center justify-between gap-3 border-b px-4 py-3">
         <h2 class="text-lg">Đơn bán</h2>
         <nav class="flex flex-wrap gap-1.5" aria-label="Lọc đơn">
@@ -72,12 +72,12 @@ onMounted(() => seller.ensure())
       </header>
 
       <div class="px-4 py-3">
-        <DsNote v-if="error" tone="bad" class="mb-3">{{ error }}</DsNote>
+        <BaseNote v-if="error" tone="bad" class="mb-3">{{ error }}</BaseNote>
 
-        <DsEmpty v-if="!rows.length" class="border-0">
+        <BaseEmpty v-if="!rows.length" class="border-0">
           <p class="text-[15px] font-bold">Không có đơn trong nhóm này</p>
           <p class="text-muted-foreground max-w-xs text-xs leading-relaxed">Đổi bộ lọc hoặc chờ đơn mới từ người mua.</p>
-        </DsEmpty>
+        </BaseEmpty>
 
         <ul v-else>
           <li v-for="order in rows" :key="order.id" class="border-rule border-b py-3 last:border-0">
@@ -89,12 +89,12 @@ onMounted(() => seller.ensure())
               </div>
               <StatusPill :status="order.status" />
               <p class="num text-sm font-bold">{{ money(order.totalAmount) }}</p>
-              <DsButton v-if="nextStatus[order.status]" variant="outline" size="sm" :disabled="busy === order.id" @click="advance(order)">
+              <BaseButton v-if="nextStatus[order.status]" variant="outline" size="sm" :disabled="busy === order.id" @click="advance(order)">
                 {{ busy === order.id ? 'Đang cập nhật…' : nextStatus[order.status]!.label }}
-              </DsButton>
-              <DsButton variant="quiet" size="sm" @click="openId = openId === order.id ? '' : order.id">
+              </BaseButton>
+              <BaseButton variant="quiet" size="sm" @click="openId = openId === order.id ? '' : order.id">
                 {{ openId === order.id ? 'Thu gọn' : 'Chi tiết' }}
-              </DsButton>
+              </BaseButton>
             </div>
 
             <div v-if="openId === order.id" class="bg-secondary mt-3 grid gap-4 rounded-[var(--radius)] p-4 sm:grid-cols-2">
@@ -129,6 +129,6 @@ onMounted(() => seller.ensure())
           </li>
         </ul>
       </div>
-    </DsPaper>
+    </BasePaper>
   </div>
 </template>

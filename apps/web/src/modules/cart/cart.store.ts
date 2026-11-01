@@ -16,14 +16,16 @@ export const useCartStore = defineStore('cart', () => {
     cart.value = await apiClient.get('/cart').then(unwrap<Cart>)
     await clampToStock()
   }
+  /** One request per stale line, all at once; the last response wins as the whole cart. */
   async function clampToStock() {
-    for (const item of [...items.value]) {
-      if (item.product.stock < 1) {
-        cart.value = await apiClient.delete(`/cart/items/${item.id}`).then(unwrap<Cart>)
-      } else if (item.quantity > item.product.stock) {
-        cart.value = await apiClient.patch(`/cart/items/${item.id}`, { quantity: item.product.stock }).then(unwrap<Cart>)
-      }
-    }
+    const stale = items.value.filter((item) => item.product.stock < 1 || item.quantity > item.product.stock)
+    if (!stale.length) return
+    const responses = await Promise.all(stale.map((item) =>
+      item.product.stock < 1
+        ? apiClient.delete(`/cart/items/${item.id}`)
+        : apiClient.patch(`/cart/items/${item.id}`, { quantity: item.product.stock }),
+    ))
+    cart.value = unwrap<Cart>(responses[responses.length - 1]!)
   }
   async function add(productId: string, quantity = 1) { cart.value = await apiClient.post('/cart/items', { productId, quantity }).then(unwrap<Cart>) }
   async function update(id: string, quantity: number) {

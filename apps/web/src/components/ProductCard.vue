@@ -5,8 +5,8 @@ import { cn } from '@/lib/utils'
 import type { Product } from '@/modules/catalog/catalog.api'
 import { productImageUrl, productInitials } from '@/media'
 import { money, pastelWell, salePercent } from '@/money'
-import DsPill from '@/components/ds/DsPill.vue'
-import DsButton from '@/components/ds/DsButton.vue'
+import BasePill from '@/components/base/BasePill.vue'
+import BaseButton from '@/components/base/BaseButton.vue'
 
 const props = withDefaults(defineProps<{
   product: Product
@@ -94,14 +94,14 @@ const wellStyle = computed(() => ({
         </RouterLink>
         <p v-if="product.description" class="text-muted-foreground line-clamp-2 text-xs leading-5">{{ product.description }}</p>
         <div class="mt-auto flex flex-wrap items-center gap-1.5 pt-1.5">
-          <DsPill :tone="stockTone">{{ stockLabel }}</DsPill>
-          <DsPill><Truck class="size-3" aria-hidden="true" />{{ freeShip ? 'Freeship' : 'Giao 2h' }}</DsPill>
+          <BasePill :tone="stockTone">{{ stockLabel }}</BasePill>
+          <BasePill><Truck class="size-3" aria-hidden="true" />{{ freeShip ? 'Freeship' : 'Giao 2h' }}</BasePill>
           <span class="text-muted-foreground num ml-auto text-[10.5px]">{{ product.sku }}</span>
         </div>
       </div>
 
       <div v-if="showAdd" class="flex items-stretch gap-2 p-3 pt-2.5">
-        <DsButton
+        <BaseButton
           variant="outline"
           size="sm"
           class="h-10 w-10 px-0"
@@ -110,11 +110,11 @@ const wellStyle = computed(() => ({
           @click="emit('add')"
         >
           <Plus class="size-4" aria-hidden="true" />
-        </DsButton>
-        <DsButton :to="`/products/${product.slug}`" :variant="heat === 'hot' ? 'buy' : 'buy'" size="sm" class="h-10 flex-1 text-[13.5px] font-bold" :class="heat === 'hot' && 'shadow-[0_0_24px_-6px_rgb(255_90_31/0.95)]'">
+        </BaseButton>
+        <BaseButton :to="`/products/${product.slug}`" :variant="heat === 'hot' ? 'buy' : 'buy'" size="sm" class="h-10 flex-1 text-[13.5px] font-bold" :class="heat === 'hot' && 'shadow-[0_0_24px_-6px_rgb(255_90_31/0.95)]'">
           <Flame v-if="heat === 'hot'" class="size-3.5" aria-hidden="true" />
           Mua ngay
-        </DsButton>
+        </BaseButton>
       </div>
     </div>
   </article>

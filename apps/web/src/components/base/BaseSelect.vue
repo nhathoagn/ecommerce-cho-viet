@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, ref, useId, watch } from 'vue'
 import { Check, ChevronDown } from '@lucide/vue'
 import { cn } from '@/lib/utils'
 
-export interface DsOption { value: string; label: string; hint?: string }
+export interface SelectOption { value: string; label: string; hint?: string }
 
 const props = withDefaults(defineProps<{
-  options: DsOption[]
+  options: SelectOption[]
   placeholder?: string
   invalid?: boolean
   disabled?: boolean
@@ -17,6 +17,10 @@ const model = defineModel<string>()
 const open = ref(false)
 const active = ref(0)
 const root = ref<HTMLElement | null>(null)
+
+// aria-controls / aria-activedescendant need ids the surrounding markup owns.
+const listId = useId()
+const optionId = (index: number) => `${listId}-option-${index}`
 
 const selected = computed(() => props.options.find((option) => option.value === model.value))
 const label = computed(() => selected.value?.label ?? props.placeholder)
@@ -75,6 +79,8 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onDocumentPoin
       role="combobox"
       :aria-expanded="open"
       aria-haspopup="listbox"
+      :aria-controls="open ? listId : undefined"
+      :aria-activedescendant="open && options[active] ? optionId(active) : undefined"
       :aria-invalid="props.invalid || undefined"
       :disabled="disabled"
       :class="cn(
@@ -92,12 +98,14 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onDocumentPoin
 
     <ul
       v-if="open"
+      :id="listId"
       role="listbox"
       class="slip absolute z-50 mt-1 max-h-72 w-full overflow-auto p-1"
     >
       <li
         v-for="(option, index) in options"
-        :key="option.value || 'empty'"
+        :id="optionId(index)"
+        :key="option.value"
         role="option"
         :aria-selected="option.value === model"
         :class="cn(
@@ -111,7 +119,7 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onDocumentPoin
         <span class="truncate">{{ option.label }}<span v-if="option.hint" class="text-muted-foreground ml-1.5 text-xs">{{ option.hint }}</span></span>
         <Check v-if="option.value === model" class="size-4 shrink-0" aria-hidden="true" />
       </li>
-      <li v-if="!options.length" class="text-muted-foreground px-2.5 py-2 text-sm">Không có lựa chọn</li>
+      <li v-if="!options.length" role="presentation" class="text-muted-foreground px-2.5 py-2 text-sm">Không có lựa chọn</li>
     </ul>
   </div>
 </template>

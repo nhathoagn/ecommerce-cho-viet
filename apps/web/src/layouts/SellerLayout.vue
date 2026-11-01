@@ -2,7 +2,7 @@
 import { computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { LayoutDashboard, Moon, Package, Receipt, Store, Sun, Wallet, type LucideIcon } from '@lucide/vue'
-import DsButton from '@/components/ds/DsButton.vue'
+import BaseButton from '@/components/base/BaseButton.vue'
 import { useTheme } from '@/lib/theme'
 import { money } from '@/money'
 import { useSellerStore } from '@/modules/seller/seller.store'
@@ -68,9 +68,9 @@ onMounted(() => seller.ensure())
                 <Sun v-if="night" class="size-[18px]" />
                 <Moon v-else class="size-[18px]" />
               </button>
-              <DsButton :to="seller.store ? '/seller/products/new' : '/seller/store'" variant="lamp" size="lg">
+              <BaseButton :to="seller.store ? '/seller/products/new' : '/seller/store'" variant="lamp" size="lg">
                 {{ seller.store ? '+ Thêm sản phẩm' : 'Mở cửa hàng' }}
-              </DsButton>
+              </BaseButton>
             </div>
           </div>
         </div>

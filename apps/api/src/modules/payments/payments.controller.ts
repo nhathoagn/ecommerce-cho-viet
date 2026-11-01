@@ -15,35 +15,28 @@ class RefundDto {
 @Controller('payments')
 export class PaymentsController {
   constructor(private readonly payments: PaymentsService) {}
+
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
-  @Post('momo/create/:orderId')
+  @Post(':orderId')
   create(@CurrentUser() user: AuthUser, @Param('orderId') orderId: string) {
     return this.payments.create(user.id, orderId);
   }
-  @Post('momo/ipn') ipn(
-    @Body() payload: Parameters<PaymentsService['handleIpn']>[0],
-  ) {
-    return this.payments.handleIpn(payload);
-  }
+
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Post(':orderId/confirm')
   confirm(@CurrentUser() user: AuthUser, @Param('orderId') orderId: string) {
-    return this.payments.confirmLocal(user.id, orderId);
+    return this.payments.confirm(user.id, orderId);
   }
+
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Get(':orderId/status')
   status(@CurrentUser() user: AuthUser, @Param('orderId') orderId: string) {
     return this.payments.status(user.id, orderId);
   }
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
-  @Post(':orderId/query')
-  query(@CurrentUser() user: AuthUser, @Param('orderId') orderId: string) {
-    return this.payments.query(user.id, orderId);
-  }
+
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.SELLER)

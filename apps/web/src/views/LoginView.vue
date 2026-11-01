@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import DsButton from '@/components/ds/DsButton.vue'
-import DsFieldError from '@/components/ds/DsFieldError.vue'
-import DsInput from '@/components/ds/DsInput.vue'
-import DsLabel from '@/components/ds/DsLabel.vue'
-import DsNote from '@/components/ds/DsNote.vue'
+import BaseButton from '@/components/base/BaseButton.vue'
+import BaseFieldError from '@/components/base/BaseFieldError.vue'
+import BaseInput from '@/components/base/BaseInput.vue'
+import BaseLabel from '@/components/base/BaseLabel.vue'
+import BaseNote from '@/components/base/BaseNote.vue'
 import { email as emailRule, required, validate } from '@/lib/form'
 import { useAuthStore } from '@/stores/auth'
 
@@ -62,10 +62,10 @@ async function submit() {
         <p v-if="route.query.redirect" class="text-muted-foreground mt-1 text-xs">Đăng nhập để tiếp tục.</p>
 
         <form class="mt-6 grid gap-4" novalidate @submit.prevent="submit">
-          <DsNote v-if="auth.error" tone="bad">{{ auth.error }}</DsNote>
+          <BaseNote v-if="auth.error" tone="bad">{{ auth.error }}</BaseNote>
           <div class="grid gap-1.5">
-            <DsLabel for="email" required>Email</DsLabel>
-            <DsInput
+            <BaseLabel for="email" required>Email</BaseLabel>
+            <BaseInput
               id="email"
               v-model.trim="form.email"
               type="email"
@@ -75,11 +75,11 @@ async function submit() {
               required
               @input="clear('email')"
             />
-            <DsFieldError :message="errors.email" />
+            <BaseFieldError :message="errors.email" />
           </div>
           <div class="grid gap-1.5">
-            <DsLabel for="password" required>Mật khẩu</DsLabel>
-            <DsInput
+            <BaseLabel for="password" required>Mật khẩu</BaseLabel>
+            <BaseInput
               id="password"
               v-model="form.password"
               type="password"
@@ -89,9 +89,9 @@ async function submit() {
               required
               @input="clear('password')"
             />
-            <DsFieldError :message="errors.password" />
+            <BaseFieldError :message="errors.password" />
           </div>
-          <DsButton type="submit" variant="primary" size="lg" block :loading="auth.loading">Đăng nhập</DsButton>
+          <BaseButton type="submit" variant="primary" size="lg" block :loading="auth.loading">Đăng nhập</BaseButton>
         </form>
       </div>
 

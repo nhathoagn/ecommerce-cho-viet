@@ -3,11 +3,11 @@ import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Minus, Plus } from '@lucide/vue'
 import ProductCard from '@/components/ProductCard.vue'
-import DsButton from '@/components/ds/DsButton.vue'
-import DsInput from '@/components/ds/DsInput.vue'
-import DsNote from '@/components/ds/DsNote.vue'
-import DsPill from '@/components/ds/DsPill.vue'
-import DsSkeleton from '@/components/ds/DsSkeleton.vue'
+import BaseButton from '@/components/base/BaseButton.vue'
+import BaseInput from '@/components/base/BaseInput.vue'
+import BaseNote from '@/components/base/BaseNote.vue'
+import BasePill from '@/components/base/BasePill.vue'
+import BaseSkeleton from '@/components/base/BaseSkeleton.vue'
 import { catalogApi, hasMultipleStores, type Category, type Product } from '@/modules/catalog/catalog.api'
 import { useCartStore } from '@/modules/cart/cart.store'
 import { Flame, Package, ShieldCheck, Store, Truck } from '@lucide/vue'
@@ -191,8 +191,8 @@ async function addRelated(item: Product) {
 
 <template>
   <div class="mx-auto flex w-full max-w-6xl flex-col gap-12 px-4 py-8 sm:px-5">
-    <DsSkeleton v-if="loading" class="h-96" />
-    <DsNote v-else-if="error && !product" tone="bad">{{ error }}</DsNote>
+    <BaseSkeleton v-if="loading" class="h-96" />
+    <BaseNote v-else-if="error && !product" tone="bad">{{ error }}</BaseNote>
     <template v-else-if="product">
       <nav class="text-muted-foreground flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs" aria-label="Đường dẫn">
         <RouterLink class="hover:text-foreground" to="/">Trang chủ</RouterLink>
@@ -244,16 +244,16 @@ async function addRelated(item: Product) {
           </div>
 
           <div class="mt-3 flex flex-wrap gap-1.5">
-            <DsPill :tone="stockTone">{{ stockLabel }}</DsPill>
-            <DsPill v-if="product.sku" class="num">{{ product.sku }}</DsPill>
+            <BasePill :tone="stockTone">{{ stockLabel }}</BasePill>
+            <BasePill v-if="product.sku" class="num">{{ product.sku }}</BasePill>
           </div>
 
           <div class="mt-5 flex flex-wrap items-center gap-2">
             <span class="label-xs text-muted-foreground">Số lượng</span>
-            <DsButton size="sm" variant="outline" :disabled="quantity <= 1" aria-label="Giảm số lượng" @click="bump(-1)">
+            <BaseButton size="sm" variant="outline" :disabled="quantity <= 1" aria-label="Giảm số lượng" @click="bump(-1)">
               <Minus class="size-4" />
-            </DsButton>
-            <DsInput
+            </BaseButton>
+            <BaseInput
               :model-value="quantity"
               type="number"
               min="1"
@@ -262,22 +262,22 @@ async function addRelated(item: Product) {
               aria-label="Số lượng"
               @update:model-value="setQuantity"
             />
-            <DsButton size="sm" variant="outline" :disabled="quantity >= product.stock" aria-label="Tăng số lượng" @click="bump(1)">
+            <BaseButton size="sm" variant="outline" :disabled="quantity >= product.stock" aria-label="Tăng số lượng" @click="bump(1)">
               <Plus class="size-4" />
-            </DsButton>
+            </BaseButton>
           </div>
 
-          <DsNote v-if="error" tone="bad" class="mt-4">{{ error }}</DsNote>
+          <BaseNote v-if="error" tone="bad" class="mt-4">{{ error }}</BaseNote>
 
           <div class="mt-4 grid gap-2">
-            <DsButton :variant="'buy'" size="lg" block :disabled="product.stock < 1" :loading="adding" @click="addToCart()">
+            <BaseButton :variant="'buy'" size="lg" block :disabled="product.stock < 1" :loading="adding" @click="addToCart()">
               <Flame v-if="heat === 'hot'" class="size-4" aria-hidden="true" />
               {{ added ? 'Đã thêm vào giỏ' : 'Thêm vào giỏ' }}
-            </DsButton>
-            <DsButton v-if="added" to="/cart" variant="outline" size="lg" block>Xem giỏ hàng</DsButton>
-            <DsButton v-else variant="outline" size="lg" block :disabled="product.stock < 1 || adding" @click="addToCart(true)">
+            </BaseButton>
+            <BaseButton v-if="added" to="/cart" variant="outline" size="lg" block>Xem giỏ hàng</BaseButton>
+            <BaseButton v-else variant="outline" size="lg" block :disabled="product.stock < 1 || adding" @click="addToCart(true)">
               Mua ngay
-            </DsButton>
+            </BaseButton>
           </div>
 
           <div class="border-rule mt-5 grid gap-3 border-t pt-4">
@@ -305,7 +305,7 @@ async function addRelated(item: Product) {
           <p class="label-xs text-primary">Mô tả sản phẩm</p>
           <h2 class="mt-2 text-[28px] sm:text-[32px]">Về món hàng này</h2>
           <div class="mt-4 grid gap-3.5">
-            <p v-for="(chunk, index) in paragraphs" :key="index" class="text-muted-foreground max-w-[68ch] text-[15px] leading-7">{{ chunk }}</p>
+            <p v-for="chunk in paragraphs" :key="chunk" class="text-muted-foreground max-w-[68ch] text-[15px] leading-7">{{ chunk }}</p>
           </div>
           <ul class="mt-6 grid gap-3 sm:grid-cols-2">
             <li
@@ -336,7 +336,7 @@ async function addRelated(item: Product) {
               <dd class="text-[13px] font-semibold">{{ spec.value }}</dd>
             </div>
           </dl>
-          <DsButton :to="`/products?search=${encodeURIComponent(product.store?.name ?? '')}`" variant="outline" size="sm" class="mt-4 w-full">Xem món của {{ product.store?.name ?? 'Chợ Việt' }}</DsButton>
+          <BaseButton :to="`/products?search=${encodeURIComponent(product.store?.name ?? '')}`" variant="outline" size="sm" class="mt-4 w-full">Xem món của {{ product.store?.name ?? 'Chợ Việt' }}</BaseButton>
         </aside>
       </section>
 

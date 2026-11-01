@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import DsButton from '@/components/ds/DsButton.vue'
-import DsFieldError from '@/components/ds/DsFieldError.vue'
-import DsInput from '@/components/ds/DsInput.vue'
-import DsLabel from '@/components/ds/DsLabel.vue'
-import DsNote from '@/components/ds/DsNote.vue'
-import DsPill from '@/components/ds/DsPill.vue'
+import BaseButton from '@/components/base/BaseButton.vue'
+import BaseFieldError from '@/components/base/BaseFieldError.vue'
+import BaseInput from '@/components/base/BaseInput.vue'
+import BaseLabel from '@/components/base/BaseLabel.vue'
+import BaseNote from '@/components/base/BaseNote.vue'
+import BasePill from '@/components/base/BasePill.vue'
 import { usersApi, type Address } from '@/api/users'
 import { money, pastelWell } from '@/money'
 import { productImageUrl, productInitials } from '@/media'
@@ -90,15 +90,7 @@ async function submit() {
   let order: Order | null = null
   try {
     order = await ordersApi.checkout(addressId.value, appliedCoupon.value)
-    const payment = await ordersApi.createMomoPayment(order.id)
-    const payUrl = payment?.payUrl
-    if (!payUrl || !/^https?:\/\//i.test(payUrl)) {
-      error.value = `Đơn ${order.code} đã tạo nhưng chưa có link MoMo. Thanh toán lại trong Đơn hàng.`
-      submitting.value = false
-      return
-    }
-    // Stay on our own payment screen: it shows the QR, a MoMo deeplink and live status,
-    // so the buyer can scan from another device instead of jumping straight out.
+    await ordersApi.createPayment(order.id)
     void router.push({ name: 'payment-result', query: { orderId: order.id } })
   } catch (reason) {
     // Đơn đã tạo và đã trừ tồn kho: nói rõ đường thoát thay vì chỉ báo lỗi MoMo.
@@ -167,15 +159,15 @@ async function submit() {
             <p v-if="!addresses.length" class="text-muted-foreground text-sm">
               Bạn chưa có địa chỉ. <RouterLink class="text-primary font-semibold" to="/profile#addresses">Thêm địa chỉ</RouterLink> để đặt hàng nhanh hơn.
             </p>
-            <DsFieldError :message="errors.address" />
+            <BaseFieldError :message="errors.address" />
           </fieldset>
 
           <div class="bg-rule my-5 h-px" role="separator" />
 
           <div class="grid gap-2">
-            <DsLabel for="coupon">Mã giảm giá</DsLabel>
+            <BaseLabel for="coupon">Mã giảm giá</BaseLabel>
             <div class="flex gap-2">
-              <DsInput
+              <BaseInput
                 id="coupon"
                 v-model="couponInput"
                 placeholder="Nhập mã nếu có"
@@ -183,18 +175,18 @@ async function submit() {
                 :disabled="Boolean(appliedCoupon)"
                 @input="clear('coupon')"
               />
-              <DsButton v-if="appliedCoupon" type="button" variant="outline" @click="clearCoupon">Gỡ</DsButton>
-              <DsButton v-else type="button" variant="outline" @click="applyCoupon">Áp dụng</DsButton>
+              <BaseButton v-if="appliedCoupon" type="button" variant="outline" @click="clearCoupon">Gỡ</BaseButton>
+              <BaseButton v-else type="button" variant="outline" @click="applyCoupon">Áp dụng</BaseButton>
             </div>
-            <DsFieldError :message="errors.coupon" />
-            <DsNote v-if="couponNotice" tone="info" class="mt-1">{{ couponNotice }}</DsNote>
+            <BaseFieldError :message="errors.coupon" />
+            <BaseNote v-if="couponNotice" tone="info" class="mt-1">{{ couponNotice }}</BaseNote>
           </div>
 
           <div class="bg-rule my-5 h-px" role="separator" />
 
           <div class="flex items-center justify-between gap-3">
             <span class="text-sm font-semibold">Thanh toán</span>
-            <DsPill tone="lamp">Ví MoMo</DsPill>
+            <BasePill tone="lamp">Ví MoMo</BasePill>
           </div>
         </div>
       </div>
@@ -226,13 +218,13 @@ async function submit() {
         <p v-if="appliedCoupon" class="text-muted-foreground mt-3 text-xs leading-relaxed">Mã {{ appliedCoupon }} sẽ được trừ trên tổng đơn khi tạo đơn thành công.</p>
 
         <div class="mt-4 grid gap-3">
-          <DsNote v-if="oversold.length && !error" tone="bad">
+          <BaseNote v-if="oversold.length && !error" tone="bad">
             Không đủ tồn kho cho {{ oversold.map((item) => item.product.name).join(', ') }}. Giảm số lượng trong giỏ rồi thử lại.
-          </DsNote>
+          </BaseNote>
           <div class="min-h-11">
-            <DsNote v-if="error" tone="bad">{{ error }}</DsNote>
+            <BaseNote v-if="error" tone="bad">{{ error }}</BaseNote>
           </div>
-          <DsButton
+          <BaseButton
             type="submit"
             variant="buy"
             size="lg"
@@ -240,7 +232,7 @@ async function submit() {
             :disabled="submitting || !cart.items.length || oversold.length > 0"
           >
             {{ submitting ? 'Đang tạo đơn…' : 'Tạo đơn và thanh toán MoMo' }}
-          </DsButton>
+          </BaseButton>
         </div>
       </aside>
     </form>

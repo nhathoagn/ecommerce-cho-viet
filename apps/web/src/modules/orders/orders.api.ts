@@ -42,10 +42,11 @@ export const ordersApi = {
   checkout: (addressId: string, couponCode?: string) => apiClient.post('/orders', { addressId, couponCode: couponCode || undefined }).then(unwrap<Order>),
   detail: (id: string) => apiClient.get(`/orders/${id}`).then(unwrap<Order>),
   cancel: (id: string) => apiClient.post(`/orders/${id}/cancel`).then(unwrap<Order>),
-  createMomoPayment: (id: string) => apiClient.post(`/payments/momo/create/${id}`).then(unwrap<{ payUrl: string }>),
-  /** Dev only: confirms a MoMo-less payment; the API refuses once real keys exist. */
-  confirmDemoPayment: (id: string) => apiClient.post(`/payments/${id}/confirm`).then(unwrap<{ id: string; status: string }>),
-  paymentStatus: (id: string) => apiClient.get(`/payments/${id}/status`).then(unwrap<{ status: string; payUrl: string | null } | null>),
+  /** Demo checkout: creates the pending payment row that the QR screen reads. */
+  createPayment: (id: string) => apiClient.post(`/payments/${id}`).then(unwrap<{ paymentId: string; status: string }>),
+  /** Buyer confirms the transfer; the API marks the order paid and credits the seller. */
+  confirmPayment: (id: string) => apiClient.post(`/payments/${id}/confirm`).then(unwrap<{ id: string; status: string }>),
+  paymentStatus: (id: string) => apiClient.get(`/payments/${id}/status`).then(unwrap<{ status: string } | null>),
 }
 
 export const sellerOrdersApi = {

@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
@@ -17,6 +18,7 @@ import {
   AdjustInventoryDto,
   CreateCategoryDto,
   CreateProductDto,
+  ProductQueryDto,
   CreateStoreDto,
   UpdateProductDto,
   UpdateStoreDto,
@@ -49,8 +51,11 @@ export class SellerCatalogController {
   @Post('categories') createCategory(@Body() dto: CreateCategoryDto) {
     return this.catalog.createCategory(dto);
   }
-  @Get('products') products(@CurrentUser() user: AuthUser) {
-    return this.catalog.listProducts(user.id);
+  @Get('products') products(
+    @CurrentUser() user: AuthUser,
+    @Query() query: ProductQueryDto,
+  ) {
+    return this.catalog.listProducts(user.id, query.page, query.pageSize);
   }
   @Post('products') createProduct(
     @CurrentUser() user: AuthUser,

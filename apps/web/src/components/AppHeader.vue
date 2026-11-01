@@ -7,9 +7,9 @@ import { catalogApi, type Category } from '@/modules/catalog/catalog.api'
 import { useCartStore } from '@/modules/cart/cart.store'
 import { useAuthStore } from '@/stores/auth'
 import { useTheme } from '@/lib/theme'
-import DsAvatar from '@/components/ds/DsAvatar.vue'
-import DsButton from '@/components/ds/DsButton.vue'
-import DsSheet from '@/components/ds/DsSheet.vue'
+import BaseAvatar from '@/components/base/BaseAvatar.vue'
+import BaseButton from '@/components/base/BaseButton.vue'
+import BaseSheet from '@/components/base/BaseSheet.vue'
 
 const auth = useAuthStore()
 const cart = useCartStore()
@@ -142,7 +142,7 @@ onBeforeUnmount(() => {
           <div class="border-input bg-paper focus-within:border-primary focus-within:ring-primary/25 flex items-center gap-2 rounded-[var(--radius)] border pr-1 pl-3 transition focus-within:ring-2">
             <Search class="text-muted-foreground size-4 shrink-0" aria-hidden="true" />
             <input v-model="search" type="search" class="text-foreground placeholder:text-muted-foreground h-10 min-w-0 flex-1 bg-transparent text-sm outline-none" placeholder="Tìm gạo ST25, mật ong, nón lá…" aria-label="Tìm sản phẩm" />
-            <DsButton type="submit" size="sm" variant="new" class="my-1">Tìm</DsButton>
+            <BaseButton type="submit" size="sm" variant="new" class="my-1">Tìm</BaseButton>
           </div>
         </form>
 
@@ -158,11 +158,11 @@ onBeforeUnmount(() => {
           </button>
 
           <span class="hidden sm:block">
-            <DsButton to="/cart" variant="primary" size="md" class="relative">
+            <BaseButton to="/cart" variant="primary" size="md" class="relative">
               <ShoppingCart class="size-4" aria-hidden="true" />
               <span class="hidden lg:inline">Giỏ</span>
               <span v-if="cart.count" class="bg-foreground text-background num rounded-[3px] px-1.5 py-0.5 text-[11px] font-extrabold">{{ cart.count }}</span>
-            </DsButton>
+            </BaseButton>
           </span>
 
           <RouterLink to="/cart" class="relative grid size-10 place-items-center rounded-[var(--radius)] border border-rule-strong sm:hidden" aria-label="Giỏ hàng">
@@ -172,7 +172,7 @@ onBeforeUnmount(() => {
 
           <details ref="accountMenu" v-if="auth.isAuthenticated" class="relative hidden sm:block">
             <summary class="hover:bg-secondary flex cursor-pointer items-center gap-2 rounded-[var(--radius)] p-1 pr-2 transition [&::-webkit-details-marker]:hidden">
-              <DsAvatar size="sm" :name="initials" />
+              <BaseAvatar size="sm" :name="initials" />
               <span class="hidden text-xs font-semibold lg:inline">{{ auth.user?.fullName?.split(' ').at(-1) }}</span>
             </summary>
             <div class="slip absolute right-0 z-40 mt-2 grid w-56 gap-0.5 p-1.5">
@@ -185,8 +185,8 @@ onBeforeUnmount(() => {
           </details>
 
           <div v-else class="hidden items-center gap-1.5 sm:flex">
-            <DsButton to="/login" variant="ghost" size="sm">Đăng nhập</DsButton>
-            <DsButton to="/register" variant="soft" size="sm">Đăng ký</DsButton>
+            <BaseButton to="/login" variant="ghost" size="sm">Đăng nhập</BaseButton>
+            <BaseButton to="/register" variant="soft" size="sm">Đăng ký</BaseButton>
           </div>
 
           <button type="button" class="grid size-10 place-items-center rounded-[var(--radius)] border border-rule-strong sm:hidden" aria-label="Mở menu" @click="mobileOpen = true">
@@ -199,7 +199,7 @@ onBeforeUnmount(() => {
         <div class="border-input bg-paper focus-within:border-primary focus-within:ring-primary/25 flex items-center gap-2 rounded-[var(--radius-md)] border pr-1 pl-3 transition focus-within:ring-2">
           <Search class="text-muted-foreground size-4 shrink-0" aria-hidden="true" />
           <input v-model="search" type="search" class="text-foreground placeholder:text-muted-foreground h-10 min-w-0 flex-1 bg-transparent text-sm outline-none" placeholder="Tìm gạo ST25, mật ong…" aria-label="Tìm sản phẩm" />
-          <DsButton type="submit" size="sm" variant="new" class="my-1">Tìm</DsButton>
+          <BaseButton type="submit" size="sm" variant="new" class="my-1">Tìm</BaseButton>
         </div>
       </form>
 
@@ -240,13 +240,13 @@ onBeforeUnmount(() => {
       </div>
     </div>
 
-    <DsSheet v-model:open="mobileOpen">
+    <BaseSheet v-model:open="mobileOpen">
       <div class="flex items-center justify-between">
         <p class="font-display text-lg">Chợ Việt</p>
         <button type="button" class="text-muted-foreground hover:text-foreground text-sm" @click="mobileOpen = false">Đóng</button>
       </div>
       <div class="mt-4 flex items-center gap-2">
-        <DsAvatar :name="initials" />
+        <BaseAvatar :name="initials" />
         <div class="min-w-0">
           <p class="truncate text-sm font-semibold">{{ auth.user?.fullName ?? 'Khách' }}</p>
           <p class="text-muted-foreground truncate text-xs">{{ auth.user?.email ?? 'Chưa đăng nhập' }}</p>
@@ -262,6 +262,6 @@ onBeforeUnmount(() => {
         <RouterLink v-if="!auth.isAuthenticated" to="/register" class="hover:bg-secondary rounded-[3px] px-2 py-2.5" @click="mobileOpen = false">Đăng ký</RouterLink>
       </nav>
       <button v-if="auth.isAuthenticated" type="button" class="text-bad border-rule mt-auto border-t pt-3 text-left text-sm" @click="signOut">Đăng xuất</button>
-    </DsSheet>
+    </BaseSheet>
   </header>
 </template>

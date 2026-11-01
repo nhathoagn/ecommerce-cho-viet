@@ -1,19 +1,33 @@
 <script setup lang="ts">
 import { Minus, Plus, Receipt, ShoppingBag, Store, Trash2 } from '@lucide/vue'
-import { computed, onMounted } from 'vue'
-import DsButton from '@/components/ds/DsButton.vue'
-import DsEmpty from '@/components/ds/DsEmpty.vue'
-import DsInput from '@/components/ds/DsInput.vue'
+import { computed, onMounted, ref } from 'vue'
+import BaseButton from '@/components/base/BaseButton.vue'
+import BaseEmpty from '@/components/base/BaseEmpty.vue'
+import BaseDialog from '@/components/base/BaseDialog.vue'
+import BaseNote from '@/components/base/BaseNote.vue'
+import BaseInput from '@/components/base/BaseInput.vue'
 import { productImageUrl, productInitials } from '@/media'
 import { money, pastelWell } from '@/money'
 import { useCartStore } from '@/modules/cart/cart.store'
+import { messageOf } from '@/stores/auth'
 
 const cart = useCartStore()
 const blocked = computed(() => cart.items.some((item) => item.quantity > item.product.stock))
-onMounted(() => { void cart.load() })
+const loadError = ref('')
+const actionError = ref('')
+const showClear = ref(false)
 
-function clearAll() {
-  if (confirm('Xóa toàn bộ giỏ hàng?')) void cart.clear()
+async function load() {
+  loadError.value = ''
+  try { await cart.load() }
+  catch (reason) { loadError.value = messageOf(reason) }
+}
+onMounted(load)
+
+async function clearAll() {
+  actionError.value = ''
+  try { await cart.clear(); showClear.value = false }
+  catch (reason) { actionError.value = messageOf(reason) }
 }
 
 const groups = computed(() => {
@@ -38,19 +52,34 @@ const groups = computed(() => {
           {{ cart.count }} món · {{ groups.length }} nhà bán
         </p>
       </div>
-      <DsButton v-if="cart.items.length" variant="quiet" size="sm" @click="clearAll">Xóa tất cả</DsButton>
+      <BaseButton v-if="cart.items.length" variant="quiet" size="sm" @click="showClear = true">Xóa tất cả</BaseButton>
     </div>
 
-    <DsEmpty v-if="!cart.items.length" class="bg-paper">
+    <BaseNote v-if="loadError" tone="bad" class="mb-4">
+      {{ loadError }}
+      <button type="button" class="ml-2 font-semibold underline" @click="load">Thử lại</button>
+    </BaseNote>
+    <BaseNote v-if="actionError" tone="bad" class="mb-4">{{ actionError }}</BaseNote>
+
+    <BaseDialog v-model:open="showClear">
+      <p class="text-xl">Xoá toàn bộ giỏ hàng?</p>
+      <p class="text-muted-foreground mt-2 text-sm leading-relaxed">Mọi món trong khay sẽ bị bỏ. Không khôi phục được.</p>
+      <div class="border-rule mt-5 flex justify-end gap-2 border-t pt-4">
+        <BaseButton variant="outline" @click="showClear = false">Giữ lại</BaseButton>
+        <BaseButton variant="danger" @click="clearAll">Xoá tất cả</BaseButton>
+      </div>
+    </BaseDialog>
+
+    <BaseEmpty v-if="!cart.items.length && !loadError" class="bg-paper">
       <span class="tone-well text-foreground mb-1 grid size-14 place-items-center rounded-full" :style="{ background: 'var(--fresh)' }">
         <ShoppingBag class="size-6" aria-hidden="true" />
       </span>
       <p class="font-display text-2xl">Khay đang trống</p>
       <p class="text-muted-foreground max-w-sm text-sm leading-relaxed">Khám phá đồ Việt từ làng nghề và vườn nhà rồi thêm vào khay.</p>
-      <DsButton to="/products" variant="primary" size="md" class="mt-1">Xem sản phẩm</DsButton>
-    </DsEmpty>
+      <BaseButton to="/products" variant="primary" size="md" class="mt-1">Xem sản phẩm</BaseButton>
+    </BaseEmpty>
 
-    <div v-else class="grid gap-5 lg:grid-cols-[minmax(0,1fr)_330px] lg:items-start">
+    <div v-else-if="cart.items.length" class="grid gap-5 lg:grid-cols-[minmax(0,1fr)_330px] lg:items-start">
       <div class="slip px-4 sm:px-5">
         <section v-for="group in groups" :key="group.name" class="border-rule border-b last:border-b-0">
           <h2 class="text-muted-foreground flex items-center gap-1.5 pt-4 pb-1">
@@ -82,7 +111,7 @@ const groups = computed(() => {
               </div>
 
               <div class="flex items-center gap-1.5">
-                <DsButton
+                <BaseButton
                   size="sm"
                   variant="outline"
                   class="w-9 px-0"
@@ -91,14 +120,14 @@ const groups = computed(() => {
                   @click="cart.update(item.id, item.quantity - 1)"
                 >
                   <Minus class="size-4" aria-hidden="true" />
-                </DsButton>
-                <DsInput
+                </BaseButton>
+                <BaseInput
                   :model-value="item.quantity"
                   readonly
                   class="num h-9 w-11 px-0 text-center"
                   aria-label="Số lượng"
                 />
-                <DsButton
+                <BaseButton
                   size="sm"
                   variant="outline"
                   class="w-9 px-0"
@@ -107,17 +136,17 @@ const groups = computed(() => {
                   @click="item.quantity < item.product.stock && cart.update(item.id, item.quantity + 1)"
                 >
                   <Plus class="size-4" aria-hidden="true" />
-                </DsButton>
+                </BaseButton>
               </div>
 
-              <DsButton
+              <BaseButton
                 size="sm"
                 variant="quiet"
                 class="text-bad hover:bg-bad-soft hover:text-bad"
                 @click="cart.remove(item.id)"
               >
                 <Trash2 class="size-4" aria-hidden="true" /> Xóa
-              </DsButton>
+              </BaseButton>
             </li>
           </ul>
         </section>
@@ -142,8 +171,8 @@ const groups = computed(() => {
         </div>
         <p class="text-muted-foreground mt-3 text-xs leading-relaxed">Phí giao và mã giảm giá được tính ở bước thanh toán.</p>
         <div class="mt-4">
-          <DsButton v-if="blocked" variant="outline" block disabled>Điều chỉnh số lượng để thanh toán</DsButton>
-          <DsButton v-else to="/checkout" variant="buy" size="lg" block>Thanh toán</DsButton>
+          <BaseButton v-if="blocked" variant="outline" block disabled>Điều chỉnh số lượng để thanh toán</BaseButton>
+          <BaseButton v-else to="/checkout" variant="buy" size="lg" block>Thanh toán</BaseButton>
         </div>
       </aside>
     </div>

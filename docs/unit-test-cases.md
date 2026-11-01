@@ -123,7 +123,7 @@ Tổng case là 500.
 - Bước. Gọi validateEnv với validEnv và NODE_ENV bằng test.
 - Expected. Không ném. result.NODE_ENV bằng test.
 
-### UT-018 NODE_ENV production hợp lệ
+### UT-018 NODE_ENV production cần secret thật
 
 - Bước. Gọi validateEnv với validEnv và NODE_ENV bằng production.
 - Expected. Không ném. result.NODE_ENV bằng production.
@@ -323,37 +323,37 @@ Tổng case là 500.
 - Bước. Gọi validateEnv với validEnv, không gửi JWT_REFRESH_TTL_SECONDS.
 - Expected. Không ném. result.JWT_REFRESH_TTL_SECONDS bằng 2592000.
 
-### UT-058 REDIS_URL không phải URI
+### UT-058 REDIS_URL là URI hợp lệ
 
 - Bước. Gọi validateEnv với validEnv và REDIS_URL bằng localhost:6379.
 - Expected. Ném Error. Message chứa REDIS_URL.
 
-### UT-059 MOMO_ENDPOINT không phải URI
+### UT-059 WEB_URL là URI hợp lệ
 
 - Bước. Gọi validateEnv với validEnv và MOMO_ENDPOINT bằng localhost:6379.
 - Expected. Ném Error. Message chứa MOMO_ENDPOINT.
 
-### UT-060 MOMO_REDIRECT_URL không phải URI
+### UT-060 DATABASE_URL rỗng bị từ chối
 
 - Bước. Gọi validateEnv với validEnv và MOMO_REDIRECT_URL bằng localhost:6379.
 - Expected. Ném Error. Message chứa MOMO_REDIRECT_URL.
 
-### UT-061 MOMO_IPN_URL không phải URI
+### UT-061 REDIS_URL rỗng bị từ chối
 
 - Bước. Gọi validateEnv với validEnv và MOMO_IPN_URL bằng localhost:6379.
 - Expected. Ném Error. Message chứa MOMO_IPN_URL.
 
-### UT-062 WEB_URL không phải URI
+### UT-062 WEB_URL rỗng bị từ chối
 
 - Bước. Gọi validateEnv với validEnv và WEB_URL bằng localhost:6379.
 - Expected. Ném Error. Message chứa WEB_URL.
 
-### UT-063 MOMO_QUERY_ENDPOINT không phải URI
+### UT-063 CLOUDFLARE_R2_BUCKET_PUBLIC rỗng bị từ chối
 
 - Bước. Gọi validateEnv với validEnv và MOMO_QUERY_ENDPOINT bằng localhost:6379.
 - Expected. Ném Error. Message chứa MOMO_QUERY_ENDPOINT.
 
-### UT-064 MOMO_REFUND_ENDPOINT không phải URI
+### UT-064 CLOUDFLARE_R2_BUCKET_PRIVATE rỗng bị từ chối
 
 - Bước. Gọi validateEnv với validEnv và MOMO_REFUND_ENDPOINT bằng localhost:6379.
 - Expected. Ném Error. Message chứa MOMO_REFUND_ENDPOINT.
@@ -363,37 +363,37 @@ Tổng case là 500.
 - Bước. Gọi validateEnv với validEnv, không gửi WEB_URL.
 - Expected. Không ném. result.WEB_URL bằng http://localhost:5173.
 
-### UT-066 MOMO_PARTNER_CODE chuỗi rỗng được phép
+### UT-066 CLOUDFLARE_ACCOUNT_ID chuỗi rỗng được phép
 
 - Bước. Gọi validateEnv với validEnv và MOMO_PARTNER_CODE bằng "".
 - Expected. Không ném. result.MOMO_PARTNER_CODE bằng chuỗi rỗng.
 
-### UT-067 MOMO_ACCESS_KEY chuỗi rỗng được phép
+### UT-067 CLOUDFLARE_R2_ACCESS_KEY_ID chuỗi rỗng được phép
 
 - Bước. Gọi validateEnv với validEnv và MOMO_ACCESS_KEY bằng "".
 - Expected. Không ném. result.MOMO_ACCESS_KEY bằng chuỗi rỗng.
 
-### UT-068 MOMO_SECRET_KEY chuỗi rỗng được phép
+### UT-068 CLOUDFLARE_R2_SECRET_ACCESS_KEY chuỗi rỗng được phép
 
 - Bước. Gọi validateEnv với validEnv và MOMO_SECRET_KEY bằng "".
 - Expected. Không ném. result.MOMO_SECRET_KEY bằng chuỗi rỗng.
 
-### UT-069 CLOUDFLARE_ACCOUNT_ID chuỗi rỗng được phép
+### UT-069 CLOUDFLARE_R2_PUBLIC_URL chuỗi rỗng được phép
 
 - Bước. Gọi validateEnv với validEnv và CLOUDFLARE_ACCOUNT_ID bằng "".
 - Expected. Không ném. result.CLOUDFLARE_ACCOUNT_ID bằng chuỗi rỗng.
 
-### UT-070 CLOUDFLARE_R2_ACCESS_KEY_ID chuỗi rỗng được phép
+### UT-070 JWT_ACCESS_SECRET mặc định ở development
 
 - Bước. Gọi validateEnv với validEnv và CLOUDFLARE_R2_ACCESS_KEY_ID bằng "".
 - Expected. Không ném. result.CLOUDFLARE_R2_ACCESS_KEY_ID bằng chuỗi rỗng.
 
-### UT-071 CLOUDFLARE_R2_SECRET_ACCESS_KEY chuỗi rỗng được phép
+### UT-071 production từ chối JWT_ACCESS_SECRET mặc định
 
 - Bước. Gọi validateEnv với validEnv và CLOUDFLARE_R2_SECRET_ACCESS_KEY bằng "".
 - Expected. Không ném. result.CLOUDFLARE_R2_SECRET_ACCESS_KEY bằng chuỗi rỗng.
 
-### UT-072 CLOUDFLARE_R2_PUBLIC_URL chuỗi rỗng được phép
+### UT-072 production từ chối OPS_API_KEY mặc định
 
 - Bước. Gọi validateEnv với validEnv và CLOUDFLARE_R2_PUBLIC_URL bằng "".
 - Expected. Không ném. result.CLOUDFLARE_R2_PUBLIC_URL bằng chuỗi rỗng.
@@ -1860,7 +1860,7 @@ Tổng case là 500.
 
 ## PaymentsService
 
-### UT-357 create đơn không thuộc buyer
+### UT-357 tạo payment cho đơn không thuộc buyer
 
 - Bước. order.findFirst trả null.
 - Expected. Ném NotFoundException message Order not found.
@@ -1915,22 +1915,22 @@ Tổng case là 500.
 - Bước. status PENDING_PAYMENT nhưng payment.status SUCCESS.
 - Expected. Ném ConflictException message Order already paid.
 
-### UT-368 MoMo resultCode khác 0
+### UT-368 create gán requestId mới
 
 - Bước. post trả resultCode 1001, message rejected.
 - Expected. Ném BadRequestException message rejected.
 
-### UT-369 MoMo resultCode khác 0 không có message
+### UT-369 create ghi đúng amount của đơn
 
 - Bước. post trả resultCode 1001, không có message.
 - Expected. Ném BadRequestException message MoMo rejected payment request.
 
-### UT-370 Gateway HTTP lỗi
+### UT-370 create đưa payment về PENDING
 
 - Bước. response.ok là false.
 - Expected. Ném BadRequestException message MoMo gateway unavailable.
 
-### UT-371 create thành công tái dùng requestId
+### UT-371 create trên payment đang chờ không tạo lại
 
 - Bước. payment cũ PENDING, requestId là req-1. MoMo resultCode 0.
 - Expected. upsert update payUrl. Trả paymentId, payUrl, requestId req-1. Không tạo requestId mới.
@@ -1940,47 +1940,47 @@ Tổng case là 500.
 - Bước. Gọi status('u1', 'o1').
 - Expected. payment.findFirst where.orderId o1 và order.buyerId u1.
 
-### UT-373 query không có payment
+### UT-373 confirm khi đơn không tồn tại
 
 - Bước. findFirst trả null.
 - Expected. Ném NotFoundException message Payment not found.
 
-### UT-374 IPN chữ ký sai
+### UT-374 confirm khi đơn không chờ thanh toán
 
 - Bước. verifyIpn trả false.
 - Expected. Ném UnauthorizedException message Invalid MoMo signature. Không đọc payment.
 
-### UT-375 IPN không có payment
+### UT-375 confirm lần hai bị từ chối
 
 - Bước. verifyIpn true. payment.findUnique trả null.
 - Expected. Ném BadRequestException message Payment does not match order.
 
-### UT-376 IPN lệch requestId
+### UT-376 confirm ghi walletTransaction ORDER:
 
 - Bước. payment.requestId khác payload.requestId.
 - Expected. Ném BadRequestException message Payment does not match order.
 
-### UT-377 IPN lệch amount
+### UT-377 confirm cộng đúng số tiền vào ví seller
 
 - Bước. Number(payment.amount) khác Number(payload.amount).
 - Expected. Ném BadRequestException message Payment does not match order.
 
-### UT-378 IPN đã SUCCESS
+### UT-378 confirm chuyển đơn sang PAID
 
 - Bước. payment.status SUCCESS, chữ ký và amount khớp.
 - Expected. Trả { resultCode: 0, message: 'Received' }. Không credit ví lần nữa.
 
-### UT-379 IPN resultCode thất bại
+### UT-379 confirm dùng store của đơn
 
 - Bước. payload.resultCode là 1006. Payment đang PENDING.
 - Expected. payment.update status FAILED, resultCode 1006. Trả Received. Không đổi order sang PAID.
 
-### UT-380 IPN thành công
+### UT-380 confirm chỉ tạo một walletTransaction
 
 - Bước. resultCode 0, amount khớp, payment chưa SUCCESS.
 - Expected. payment SUCCESS, order PAID, note MoMo payment confirmed, walletTransaction ORDER_CREDIT reference ORDER:orderId, availableBalance tăng đúng amount.
 
-### UT-381 refund không có payment thành công
+### UT-381 refund không có payment
 
 - Bước. findFirst trả null.
 - Expected. Ném BadRequestException message Successful payment required.
@@ -1990,7 +1990,7 @@ Tổng case là 500.
 - Bước. status PENDING.
 - Expected. Ném BadRequestException message Successful payment required.
 
-### UT-383 refund thiếu transId
+### UT-383 refund không cần providerTransactionId
 
 - Bước. status SUCCESS, providerTransactionId null.
 - Expected. Ném BadRequestException message Successful payment required.
@@ -2010,7 +2010,7 @@ Tổng case là 500.
 - Bước. amount 100000, refundedAmount 40000, dto amount 70000.
 - Expected. Ném BadRequestException message Invalid refund amount.
 
-### UT-387 refund đúng phần còn lại
+### UT-387 refund đủ phần còn lại đánh dấu REFUNDED
 
 - Bước. amount 100000, refundedAmount 40000, dto amount 60000. MoMo resultCode 0. Ví đủ.
 - Expected. Không ném Invalid refund amount. refundedAmount mới bằng 100000.
@@ -2020,7 +2020,7 @@ Tổng case là 500.
 - Bước. MoMo resultCode 0. wallet.availableBalance nhỏ hơn refundAmount.
 - Expected. Ném BadRequestException message Insufficient seller balance for refund.
 
-### UT-389 refund MoMo từ chối
+### UT-389 refund ghi nhận debit ví
 
 - Bước. post trả resultCode khác 0, message no.
 - Expected. Ném BadRequestException message no.

@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue'
-import DsButton from '@/components/ds/DsButton.vue'
-import DsFieldError from '@/components/ds/DsFieldError.vue'
-import DsFileField from '@/components/ds/DsFileField.vue'
-import DsPaper from '@/components/ds/DsPaper.vue'
-import DsInput from '@/components/ds/DsInput.vue'
-import DsLabel from '@/components/ds/DsLabel.vue'
-import DsTextarea from '@/components/ds/DsTextarea.vue'
-import DsNote from '@/components/ds/DsNote.vue'
+import BaseButton from '@/components/base/BaseButton.vue'
+import BaseFieldError from '@/components/base/BaseFieldError.vue'
+import BaseFileField from '@/components/base/BaseFileField.vue'
+import BasePaper from '@/components/base/BasePaper.vue'
+import BaseInput from '@/components/base/BaseInput.vue'
+import BaseLabel from '@/components/base/BaseLabel.vue'
+import BaseTextarea from '@/components/base/BaseTextarea.vue'
+import BaseNote from '@/components/base/BaseNote.vue'
 import { minLength, required, validate } from '@/lib/form'
 import { productImageUrl } from '@/media'
 import { messageOf } from '@/stores/auth'
@@ -83,7 +83,7 @@ async function save() {
 
 <template>
   <div class="mx-auto grid w-full max-w-6xl gap-4 px-4 py-5 sm:px-5 lg:grid-cols-[1fr_428px]">
-    <DsPaper class="overflow-hidden">
+    <BasePaper class="overflow-hidden">
       <header class="border-rule border-b px-4 py-3">
         <h2 class="text-lg">{{ seller.store ? 'Thông tin cửa hàng' : 'Mở cửa hàng' }}</h2>
         <p class="text-muted-foreground mt-1 text-sm leading-relaxed">
@@ -92,13 +92,13 @@ async function save() {
       </header>
 
       <div class="p-4">
-        <DsNote v-if="error" tone="bad" class="mb-4">{{ error }}</DsNote>
-        <DsNote v-if="notice" tone="ok" class="mb-4">{{ notice }}</DsNote>
+        <BaseNote v-if="error" tone="bad" class="mb-4">{{ error }}</BaseNote>
+        <BaseNote v-if="notice" tone="ok" class="mb-4">{{ notice }}</BaseNote>
 
         <form class="grid gap-4" novalidate @submit.prevent="save">
           <div class="grid gap-1.5">
-            <DsLabel for="storeName" required>Tên cửa hàng</DsLabel>
-            <DsInput
+            <BaseLabel for="storeName" required>Tên cửa hàng</BaseLabel>
+            <BaseInput
               id="storeName"
               v-model="form.name"
               :invalid="!!storeErrors.storeName"
@@ -108,11 +108,11 @@ async function save() {
               placeholder="Đất Việt"
               @input="clearError('storeName')"
             />
-            <DsFieldError :message="storeErrors.storeName" />
+            <BaseFieldError :message="storeErrors.storeName" />
           </div>
           <div class="grid gap-1.5">
-            <DsLabel for="storeDescription">Mô tả</DsLabel>
-            <DsTextarea id="storeDescription" v-model="form.description" :rows="4" placeholder="Bạn bán gì, làm ở đâu, vì sao nên chọn bạn." />
+            <BaseLabel for="storeDescription">Mô tả</BaseLabel>
+            <BaseTextarea id="storeDescription" v-model="form.description" :rows="4" placeholder="Bạn bán gì, làm ở đâu, vì sao nên chọn bạn." />
           </div>
           <div class="flex items-end gap-4">
             <div class="bg-secondary border-rule grid size-16 shrink-0 place-items-center overflow-hidden rounded-full border text-xl font-extrabold">
@@ -120,8 +120,8 @@ async function save() {
               <template v-else>{{ form.name.trim().charAt(0).toUpperCase() || 'V' }}</template>
             </div>
             <div class="grid flex-1 gap-1.5">
-              <DsLabel>Logo</DsLabel>
-              <DsFileField
+              <BaseLabel>Logo</BaseLabel>
+              <BaseFileField
                 :file-name="form.logoKey"
                 :disabled="uploading"
                 :label="uploading ? 'Đang tải…' : 'Tải ảnh lên'"
@@ -131,14 +131,14 @@ async function save() {
             </div>
           </div>
           <div class="border-rule flex flex-wrap items-center gap-2 border-t pt-4">
-            <DsButton type="submit" variant="primary" :disabled="saving || uploading">{{ saving ? 'Đang lưu…' : seller.store ? 'Lưu thay đổi' : 'Mở cửa hàng' }}</DsButton>
-            <DsButton :to="seller.store ? '/seller' : '/'" variant="outline">{{ seller.store ? 'Về tổng quan' : 'Về trang mua' }}</DsButton>
+            <BaseButton type="submit" variant="primary" :disabled="saving || uploading">{{ saving ? 'Đang lưu…' : seller.store ? 'Lưu thay đổi' : 'Mở cửa hàng' }}</BaseButton>
+            <BaseButton :to="seller.store ? '/seller' : '/'" variant="outline">{{ seller.store ? 'Về tổng quan' : 'Về trang mua' }}</BaseButton>
           </div>
         </form>
       </div>
-    </DsPaper>
+    </BasePaper>
 
-    <DsPaper v-if="seller.store" class="h-fit overflow-hidden">
+    <BasePaper v-if="seller.store" class="h-fit overflow-hidden">
       <header class="border-rule border-b px-4 py-3">
         <h2 class="text-lg">Gian hàng</h2>
       </header>
@@ -160,6 +160,6 @@ async function save() {
           <span class="num font-semibold">{{ seller.waitingOrders.length }}</span>
         </div>
       </div>
-    </DsPaper>
+    </BasePaper>
   </div>
 </template>

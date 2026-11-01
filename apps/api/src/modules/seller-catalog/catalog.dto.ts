@@ -8,11 +8,16 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  Max,
   MaxLength,
   Min,
   MinLength,
   ValidateNested,
 } from 'class-validator';
+
+/** Catalogue pages default to 24 rows; callers may ask for fewer, never for everything. */
+export const DEFAULT_PAGE_SIZE = 24;
+export const MAX_PAGE_SIZE = 100;
 
 export class ProductImageDto {
   @ApiProperty()
@@ -154,6 +159,21 @@ export class ProductQueryDto {
   @IsOptional()
   @IsString()
   store?: string;
+
+  @ApiPropertyOptional({ default: 1, maximum: 100 })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  page?: number;
+
+  @ApiPropertyOptional({ default: DEFAULT_PAGE_SIZE, maximum: 100 })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(100)
+  pageSize?: number;
 }
 
 export class PresignUploadDto {
