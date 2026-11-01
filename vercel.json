@@ -12,6 +12,10 @@
   },
   "rewrites": [
     { "source": "/api/:path((?!$).*)", "destination": "/api/[...path]?__p=:path" },
+    {
+      "source": "/products/:seller/:file",
+      "destination": "https://iuivtgpvvvspbxnptbwt.supabase.co/storage/v1/object/public/cho-viet/products/:seller/:file"
+    },
     { "source": "/:path((?!api/).*)", "destination": "/index.html" }
   ]
 }
