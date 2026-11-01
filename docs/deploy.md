@@ -6,12 +6,12 @@ Bản đang chạy: **https://ecommerce-cho-viet-u3s8.vercel.app** — cả fron
 
 ```mermaid
 flowchart LR
-  U[Browser] -->|HTTPS| V[Vercel edge]
-  V -->|static| S[apps/web/dist<br/>SPA + ảnh seed]
-  V -->|/api/*| F[Function: api/[...path].mjs<br/>Nest + Express, region cle1]
-  V -->|/products/:seller/:file| B[(Supabase Storage<br/>bucket cho-viet)]
-  F -->|Prisma| N[(Neon Postgres<br/>us-east-2)]
-  U -->|PUT presigned| B
+  U["Browser"] -->|"HTTPS"| V["Vercel edge"]
+  V -->|"static files"| S["SPA build · apps/web/dist"]
+  V -->|"/api/*"| F["Function · api/[...path].mjs<br/>Nest + Express, region cle1"]
+  V -->|"/products/:seller/:file"| B["Supabase Storage<br/>bucket cho-viet"]
+  F -->|"Prisma"| N["Neon Postgres · us-east-2"]
+  U -->|"PUT presigned"| B
 ```
 
 - **Một project Vercel** `ecommerce-cho-viet-u3s8`, Root Directory = **repo root** (không phải `apps/web`). Toàn bộ cấu hình nằm trong `vercel.json`.
