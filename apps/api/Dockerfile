@@ -18,8 +18,10 @@ FROM node:24-alpine AS runtime
 RUN addgroup -S nodejs && adduser -S nestjs -G nodejs
 WORKDIR /app
 ENV NODE_ENV=production
-COPY --from=dependencies /app/node_modules ./node_modules
-COPY --from=dependencies /app/apps/api/node_modules ./apps/api/node_modules
+# From the build stage, not dependencies: `prisma generate` writes the typed client
+# (enums such as UserRole) into node_modules during build, and the runtime needs it.
+COPY --from=build /app/node_modules ./node_modules
+COPY --from=build /app/apps/api/node_modules ./apps/api/node_modules
 COPY --from=build /app/apps/api/dist ./apps/api/dist
 COPY --from=build /app/apps/api/prisma ./apps/api/prisma
 COPY --from=build /app/apps/api/package.json ./apps/api/package.json
