@@ -5,9 +5,9 @@ Source base cho web bán hàng với hai vai trò buyer và seller.
 ## Stack
 
 - Vue 3, TypeScript, Vite, Pinia, Vue Router, TanStack Query
-- NestJS, Prisma, PostgreSQL, Redis
-- MoMo Sandbox cho thanh toán
-- Cloudflare R2 cho file và ảnh
+- NestJS, Prisma, PostgreSQL
+- Thanh toán demo bằng QR cố định (không gọi provider ngoài)
+- Ảnh lưu trên Supabase Storage qua giao thức S3 (`S3_ENDPOINT`, `S3_REGION`)
 - pnpm workspace
 
 ## Chạy local
@@ -60,6 +60,16 @@ pnpm db:deploy         # Chạy migration có sẵn ở staging/production
 ```
 
 Migration ban đầu nằm trong `apps/api/prisma/migrations`.
+
+## Deploy
+
+Frontend và API chạy chung một project Vercel: **https://ecommerce-cho-viet-u3s8.vercel.app**.
+
+```bash
+git push origin main   # Vercel tự build và promote, ~40 s
+```
+
+Migration **không** chạy tự động — phải chạy `pnpm db:deploy` với chuỗi kết nối direct trước khi push. Chi tiết kiến trúc, biến môi trường, checklist kiểm tra, rollback và các sự cố đã gặp: [docs/deploy.md](docs/deploy.md).
 
 ## Quality checks
 
