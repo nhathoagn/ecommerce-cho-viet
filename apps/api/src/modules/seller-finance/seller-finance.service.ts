@@ -13,12 +13,22 @@ export class SellerFinanceService {
     return store;
   }
 
-  private wallet(sellerId: string) {
-    return this.prisma.sellerWallet.upsert({
-      where: { sellerId },
-      create: { sellerId },
-      update: {},
-    });
+  private async wallet(sellerId: string) {
+    try {
+      return await this.prisma.sellerWallet.upsert({
+        where: { sellerId },
+        create: { sellerId },
+        update: {},
+      });
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        return this.prisma.sellerWallet.findUniqueOrThrow({ where: { sellerId } });
+      }
+      throw error;
+    }
   }
 
   async summary(sellerId: string) {

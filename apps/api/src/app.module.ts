@@ -16,6 +16,13 @@ import { PaymentsModule } from './modules/payments/payments.module.js';
 import { SellerFinanceModule } from './modules/seller-finance/seller-finance.module.js';
 import { OperationsModule } from './modules/operations/operations.module.js';
 
+export const pinoRedactPaths = [
+  'req.headers.authorization',
+  'req.headers.cookie',
+  '*.password',
+  '*.secretKey',
+];
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -28,12 +35,7 @@ import { OperationsModule } from './modules/operations/operations.module.js';
     LoggerModule.forRoot({
       pinoHttp: {
         level: process.env.LOG_LEVEL ?? 'info',
-        redact: [
-          'req.headers.authorization',
-          'req.headers.cookie',
-          '*.password',
-          '*.secretKey',
-        ],
+        redact: pinoRedactPaths,
         transport:
           process.env.NODE_ENV !== 'production'
             ? {

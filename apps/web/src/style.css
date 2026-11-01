@@ -1,3 +1,249 @@
-:root{font-family:Inter,ui-sans-serif,system-ui,-apple-system,sans-serif;color:#17221b;background:#f7f8f6;font-synthesis:none;--green:#00b14f;--dark:#073b25;--muted:#68736c;--border:#e5e9e6}*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;min-width:320px;min-height:100vh}button,input{font:inherit}button,a{transition:.2s}a{color:inherit;text-decoration:none}.container{width:min(1180px,calc(100% - 40px));margin:auto}.site-header{background:#fff;position:sticky;top:0;z-index:20;box-shadow:0 1px 8px #12251a12}.header-top{padding:16px 0}.header-row,.header-actions,.categories,.user-link{display:flex;align-items:center}.header-row{gap:28px}.brand{display:flex;align-items:center;gap:10px;color:#083d25;font-size:22px;font-weight:850;white-space:nowrap}.brand-mark{display:grid;place-items:center;width:38px;height:38px;border-radius:12px 4px 12px 4px;background:var(--green);color:#fff;font-style:italic}.search{height:44px;display:flex;flex:1;border:1.5px solid #dfe5e1;border-radius:10px;overflow:hidden}.search:focus-within{border-color:var(--green)}.search input{border:0;outline:0;padding:0 16px;flex:1;min-width:100px}.search button{width:52px;border:0;background:var(--green);color:#fff;font-size:24px}.header-actions{gap:18px;font-size:14px}.header-actions a:hover,.link-button:hover{color:var(--green)}.header-register{border:1px solid var(--green);padding:9px 15px;border-radius:8px;color:var(--green)!important}.nav-icon,.user-link{gap:7px}.avatar{display:grid;place-items:center;width:32px;height:32px;border-radius:50%;background:#e6f8ed;color:#008b3e;font-weight:800}.link-button{border:0;background:none;cursor:pointer}.category-bar{border-top:1px solid #f0f1f0}.categories{height:42px;gap:34px;font-size:13px}.categories span{font-weight:750}.mobile-toggle{display:none;border:0;background:none;font-size:24px}.market-hero{background:linear-gradient(125deg,#063b24,#006d37);color:#fff;overflow:hidden}.hero-content{min-height:510px;display:grid;grid-template-columns:1.1fr .9fr;align-items:center}.hero-kicker,.eyebrow-light,.eyebrow{font-size:12px;font-weight:800;letter-spacing:.14em}.hero-kicker{color:#85e9ac}.hero-content h1{font-size:clamp(44px,6vw,70px);line-height:1.05;margin:16px 0}.hero-content h1 em{color:#62dc91;font-style:normal}.hero-content p{font-size:17px;line-height:1.65;color:#d2e8dc;max-width:570px}.hero-buttons{display:flex;gap:12px;margin:28px 0}.primary-button,.light-button,.outline-button{display:inline-flex;justify-content:center;align-items:center;border-radius:9px;padding:13px 22px;font-weight:750;border:0;cursor:pointer}.primary-button{background:var(--green);color:#fff}.primary-button:hover{background:#009b45}.primary-button:disabled{opacity:.6}.light-button{background:#fff;color:#07502d}.hero-stats{display:flex;gap:34px;margin-top:38px}.hero-stats span{display:grid;font-size:12px;color:#b9d6c6}.hero-stats strong{font-size:22px;color:#fff}.hero-art{position:relative;text-align:center}.art-main{font-size:190px;filter:drop-shadow(0 30px 30px #001f1266)}.float-item{position:absolute;background:#fff;border-radius:50%;padding:15px;font-size:35px;box-shadow:0 15px 30px #002c1966}.float-item.one{top:15%;left:10%}.float-item.two{right:8%;top:33%}.float-item.three{left:23%;bottom:8%}.section{padding:68px 0}.section-title{display:flex;align-items:end;justify-content:space-between;margin-bottom:28px}.section-title h2,.seller-banner h2{font-size:32px;margin:8px 0}.section-title a{color:var(--green);font-weight:700}.eyebrow{color:#00a248}.category-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:14px}.category-grid article{background:#fff;border:1px solid var(--border);border-radius:14px;padding:23px;text-align:center;display:grid;gap:12px}.category-grid article:hover{transform:translateY(-4px);box-shadow:0 10px 25px #163d2412;border-color:#a9dfbe}.category-grid span{font-size:42px}.product-section{background:#f0f5f1}.product-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:16px}.product-card{background:#fff;border-radius:13px;overflow:hidden;border:1px solid var(--border)}.product-card:hover{transform:translateY(-4px);box-shadow:0 12px 25px #173d2514}.product-image{height:185px;background:linear-gradient(145deg,#edf2ed,#dce8dd);display:grid;place-items:center;position:relative;font-size:75px}.product-image button,.product-tag{position:absolute}.product-image button{right:10px;top:10px;border:0;border-radius:50%;background:#fff;width:34px;height:34px}.product-tag{left:9px;top:9px;background:#e84b3c;color:#fff;padding:4px 8px;border-radius:5px;font-size:11px}.product-info{padding:15px}.product-info small{color:#009743}.product-info h3{font-size:15px;line-height:1.4;height:42px}.product-info strong{color:#e14436;font-size:17px}.product-info del{margin-left:8px;color:#929a95;font-size:12px}.product-info p{font-size:12px;color:#f2a900}.product-info p span{color:#8a938d;margin-left:7px}.seller-banner{margin-top:70px;margin-bottom:70px;padding:55px 70px;border-radius:22px;background:linear-gradient(120deg,#075735,#00a049);color:#fff;display:flex;justify-content:space-between;align-items:center;overflow:hidden}.seller-banner p{color:#d3ecdf;max-width:580px;line-height:1.6}.seller-art{font-size:130px}.footer{background:#082b1c;color:#d8e4dc;padding:28px 0}.footer .container{display:flex;justify-content:space-between}.auth-page{min-height:100vh;display:grid;grid-template-columns:44% 56%}.auth-promo{background:linear-gradient(150deg,#064027,#008d43);color:#fff;padding:50px clamp(35px,6vw,85px);display:flex;flex-direction:column;justify-content:space-between}.brand-light{color:#fff}.auth-promo h1{font-size:clamp(42px,5vw,65px);line-height:1.08;margin:18px 0}.auth-promo p{color:#d2e9dc;line-height:1.7}.trust-row{display:flex;gap:18px;font-size:13px}.benefit-list{padding:0;list-style:none;line-height:2.3;color:#def0e5}.auth-panel{background:#fff;display:grid;place-items:center;padding:40px}.auth-card{width:min(440px,100%);display:grid;gap:20px}.auth-card h2{font-size:36px;margin:8px 0}.auth-card p{color:var(--muted)}.auth-card a{color:var(--green);font-weight:700}.auth-card label,.profile-form label,.modal label{display:grid;gap:8px;font-weight:650;font-size:14px}.auth-card input,.profile-form input,.modal input{height:48px;border:1px solid #dce2de;border-radius:8px;padding:0 13px;outline:0}.auth-card input:focus,.profile-form input:focus,.modal input:focus{border-color:var(--green);box-shadow:0 0 0 3px #00b14f15}.form-meta,.social-buttons,.role-tabs,.form-grid{display:flex;gap:13px}.form-meta{justify-content:space-between}.check{display:flex!important;grid-template-columns:auto 1fr!important;align-items:center;font-weight:400!important}.check input{width:16px;height:16px}.divider{text-align:center;border-top:1px solid var(--border);height:1px;margin:7px 0}.divider span{position:relative;top:-11px;background:#fff;padding:0 12px;color:#8b938e}.social-buttons button,.role-tabs button{flex:1;padding:12px;border:1px solid var(--border);background:#fff;border-radius:8px}.form-error{background:#fff0ef;color:#b72820!important;padding:11px;border-radius:7px;font-size:14px}.register-card{width:min(600px,100%)}.role-tabs button{padding:16px;cursor:pointer}.role-tabs button.active{border-color:var(--green);background:#effbf4;color:#008d3f;font-weight:750}.form-grid>*{flex:1}.terms{line-height:1.5}.profile-page{display:grid;grid-template-columns:250px 1fr;gap:25px;padding-top:38px;padding-bottom:70px}.profile-sidebar,.content-card{background:#fff;border:1px solid var(--border);border-radius:12px}.profile-sidebar{height:max-content;overflow:hidden}.profile-person{display:flex;gap:12px;align-items:center;padding:22px;border-bottom:1px solid var(--border)}.profile-person div{display:grid;min-width:0}.profile-person small{color:var(--muted);overflow:hidden;text-overflow:ellipsis}.profile-avatar{display:grid;place-items:center;width:45px;height:45px;flex:none;border-radius:50%;background:var(--green);color:#fff;font-size:20px;font-weight:800}.profile-sidebar nav{display:grid;padding:10px}.profile-sidebar nav a{padding:13px;border-radius:7px;color:#566159}.profile-sidebar nav a.active{background:#eaf8ef;color:#008f40;font-weight:700}.profile-content{display:grid;gap:22px}.content-card{padding:28px}.section-heading{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);padding-bottom:18px;margin-bottom:24px}.section-heading h1,.section-heading h2{margin:0}.section-heading p{margin:6px 0 0;color:var(--muted)}.profile-form{max-width:680px;display:grid;gap:18px}.profile-form small{color:var(--muted)}.compact{width:max-content}.outline-button{border:1px solid var(--green);color:var(--green);background:#fff}.success-message{color:#008b3e;background:#eaf9f0;padding:10px}.empty-state{display:grid;place-items:center;gap:7px;color:#819087;font-size:35px;padding:35px}.empty-state span{font-size:14px}.address-card{display:flex;justify-content:space-between;padding:19px 0;border-bottom:1px solid var(--border)}.address-title{display:flex;gap:12px}.address-title span{color:var(--muted)}.address-title em{font-size:11px;border:1px solid var(--green);color:var(--green);padding:3px 6px;font-style:normal}.address-card p{color:var(--muted);font-size:14px}.address-actions button{border:0;background:none;color:#008f40;cursor:pointer}.address-actions .danger{color:#d43d32}.modal-backdrop{position:fixed;inset:0;background:#0c231899;z-index:50;display:grid;place-items:center;padding:20px}.modal{background:#fff;width:min(650px,100%);padding:28px;border-radius:14px;display:grid;gap:17px}.modal .section-heading button{border:0;background:none;font-size:20px}.three{display:grid;grid-template-columns:repeat(3,1fr)}
-@media(max-width:900px){.header-row{gap:12px}.mobile-toggle{display:block}.header-actions{display:none;position:absolute;right:20px;top:72px;background:#fff;padding:20px;box-shadow:0 12px 30px #0002;border-radius:10px;flex-direction:column;align-items:flex-start}.header-actions.open{display:flex}.categories{overflow:auto}.hero-content{grid-template-columns:1fr;min-height:auto;padding:70px 0}.hero-art{display:none}.category-grid{grid-template-columns:repeat(3,1fr)}.product-grid{grid-template-columns:repeat(3,1fr)}.auth-page{grid-template-columns:1fr}.auth-promo{min-height:360px;gap:55px}.profile-page{grid-template-columns:1fr}.profile-sidebar nav{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:600px){.container{width:min(100% - 24px,1180px)}.header-row{flex-wrap:wrap}.brand{font-size:18px}.search{order:3;flex-basis:100%}.categories{gap:22px}.categories a{white-space:nowrap}.hero-content h1{font-size:44px}.hero-buttons,.hero-stats{flex-wrap:wrap}.category-grid{grid-template-columns:repeat(2,1fr)}.product-grid{grid-template-columns:repeat(2,1fr);gap:10px}.product-image{height:145px}.seller-banner{padding:38px 28px}.seller-art{display:none}.footer .container{flex-direction:column;gap:8px}.auth-promo{padding:35px 25px}.auth-panel{padding:35px 20px}.auth-card h2{font-size:30px}.form-grid{flex-direction:column}.profile-sidebar nav{grid-template-columns:1fr}.content-card{padding:20px}.section-heading,.address-card{align-items:flex-start;gap:14px;flex-direction:column}.address-actions{display:flex;flex-wrap:wrap}.three{display:flex}.modal{max-height:90vh;overflow:auto}}
+@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap');
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* Đèn lồng — paper stretched over bamboo ribs.
+   Ngày: kraft paper, ink ribs, lamps off. Đêm: ink ground, paper lamps lit. */
+:root {
+  --radius: 10px;
+  --background: #f6f7fb;
+  --foreground: #0b0f16;
+  --card: #ffffff;
+  --card-foreground: #0b0f16;
+  --popover: #ffffff;
+  --popover-foreground: #0b0f16;
+  --primary: #00cf9a;
+  --primary-foreground: #04241b;
+  --secondary: #eef1f8;
+  --secondary-foreground: #0b0f16;
+  --muted: #eef1f8;
+  --muted-foreground: #5b6472;
+  --accent: #ffe14d;
+  --accent-foreground: #241a02;
+  --destructive: #d92d20;
+  --destructive-foreground: #ffffff;
+  --border: #e2e7f0;
+  --rule: #e2e7f0;
+  --rule-strong: #c8d0e0;
+  --input: #c8d0e0;
+  --ring: #00cf9a;
+  --paper: #ffffff;
+  --paper-sunk: #eef1f8;
+  --band: #0a0d14;
+  --band-foreground: #f6f8fc;
+  --band-rule: rgb(246 248 252 / 0.10);
+  --lamp: #ffe14d;
+  --lamp-soft: rgb(255 225 77 / 0.35);
+  --ok: #0e9f6e;
+  --ok-soft: #d9f7ea;
+  --warn: #b45309;
+  --warn-soft: #ffefd6;
+  --bad: #d92d20;
+  --bad-soft: #ffe5e2;
+  --buy: #ff5a1f;
+  --buy-foreground: #2a0d00;
+  --fresh: #ccff3d;
+  --fresh-ink: #16200a;
+  --slip-shadow: 0 16px 32px -22px rgb(12 20 38 / 0.28);
+}
+
+.dark {
+  --background: #07090f;
+  --foreground: #f4f6fb;
+  --card: #10131c;
+  --card-foreground: #f4f6fb;
+  --popover: #10131c;
+  --popover-foreground: #f4f6fb;
+  --primary: #22e3ad;
+  --primary-foreground: #04241b;
+  --secondary: #171b27;
+  --secondary-foreground: #f4f6fb;
+  --muted: #171b27;
+  --muted-foreground: #9aa3b5;
+  --accent: #ffe87a;
+  --accent-foreground: #241a02;
+  --destructive: #ff8175;
+  --destructive-foreground: #1a0605;
+  --border: #1d2230;
+  --rule: #1d2230;
+  --rule-strong: #2c3448;
+  --input: #2c3448;
+  --ring: #22e3ad;
+  --paper: #10131c;
+  --paper-sunk: #05070c;
+  --band: #04060a;
+  --band-foreground: #f4f6fb;
+  --band-rule: rgb(244 246 251 / 0.10);
+  --lamp: #ffe87a;
+  --lamp-soft: rgb(255 232 122 / 0.25);
+  --ok: #63e6a8;
+  --ok-soft: #0c2a1e;
+  --warn: #ffc978;
+  --warn-soft: #2b2110;
+  --bad: #ff9c92;
+  --bad-soft: #2c1512;
+  --buy: #ff6a33;
+  --buy-foreground: #220a00;
+  --fresh: #d4ff5c;
+  --fresh-ink: #16200a;
+  --slip-shadow: 0 20px 44px -28px rgb(0 0 0 / 0.9);
+}
+
+@theme inline {
+  --font-sans: 'Be Vietnam Pro', ui-sans-serif, system-ui, sans-serif;
+  --font-heading: 'Be Vietnam Pro', ui-sans-serif, system-ui, sans-serif;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-rule: var(--rule);
+  --color-rule-strong: var(--rule-strong);
+  --color-paper: var(--paper);
+  --color-paper-sunk: var(--paper-sunk);
+  --color-band: var(--band);
+  --color-band-foreground: var(--band-foreground);
+  --color-lamp: var(--lamp);
+  --color-ok: var(--ok);
+  --color-ok-soft: var(--ok-soft);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --color-bad: var(--bad);
+  --color-bad-soft: var(--bad-soft);
+  --radius-sm: 8px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 22px;
+  --color-buy: var(--buy);
+  --color-buy-foreground: var(--buy-foreground);
+  --color-fresh: var(--fresh);
+  --color-fresh-ink: var(--fresh-ink);
+}
+
+@utility font-display {
+  font-family: var(--font-heading);
+  font-weight: 800;
+  letter-spacing: -0.035em;
+}
+
+/* A paper slip: the repeating surface of the world. */
+@utility slip {
+  background: var(--paper);
+  color: var(--card-foreground);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  box-shadow: var(--slip-shadow);
+}
+
+/* Lit paper: the same slip with the lamp behind it. */
+@utility lit {
+  border-color: color-mix(in oklab, var(--lamp) 55%, var(--rule));
+  box-shadow:
+    0 0 0 1px var(--lamp-soft),
+    0 0 42px -8px var(--lamp-soft),
+    var(--slip-shadow);
+}
+
+/* The ink band: promo strip, hero room, footer. */
+@utility band {
+  background: var(--band);
+  color: var(--band-foreground);
+}
+
+/* Bamboo ribs, drawn as one repeating line pattern. */
+@utility ribs {
+  background-image: repeating-linear-gradient(
+    90deg,
+    transparent 0 74px,
+    var(--band-rule) 74px 75px
+  );
+}
+
+@utility label-xs {
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+@utility num {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  /* Product wells carry their colour in --well: full-strength in daylight, a deep
+     tint mixed into the dark surface at night. No filter, so hues stay true. */
+  .well-surface {
+    background: var(--well);
+  }
+  .dark .well-surface {
+    background: color-mix(in oklab, var(--well) 26%, var(--paper));
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-background text-foreground min-h-svh min-w-80 font-sans antialiased;
+    font-size: 15px;
+  }
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+  h1, h2, h3, h4 {
+    font-family: var(--font-heading);
+    font-weight: 800;
+    letter-spacing: -0.035em;
+    line-height: 1.02;
+    text-wrap: balance;
+  }
+  #app {
+    @apply min-h-svh;
+  }
+  ::selection {
+    background: var(--primary);
+    color: var(--primary-foreground);
+  }
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+  input, textarea, select {
+    caret-color: var(--primary);
+  }
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--background);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--rule-strong);
+    border: 2px solid var(--background);
+    border-radius: 999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--primary);
+  }
+}

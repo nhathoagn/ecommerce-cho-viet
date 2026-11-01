@@ -1,27 +1,222 @@
 <script setup lang="ts">
 import { reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useAuthStore } from '../stores/auth'
+import DsButton from '@/components/ds/DsButton.vue'
+import DsCheckbox from '@/components/ds/DsCheckbox.vue'
+import DsFieldError from '@/components/ds/DsFieldError.vue'
+import DsInput from '@/components/ds/DsInput.vue'
+import DsLabel from '@/components/ds/DsLabel.vue'
+import DsNote from '@/components/ds/DsNote.vue'
+import { email as emailRule, minLength, phoneVN, required, validate } from '@/lib/form'
+import { sellerCatalogApi } from '@/modules/catalog/catalog.api'
+import { messageOf, useAuthStore } from '@/stores/auth'
 
-const route = useRoute(), router = useRouter(), auth = useAuthStore()
+const route = useRoute()
+const router = useRouter()
+const auth = useAuthStore()
 const role = ref<'BUYER' | 'SELLER'>(route.query.role === 'seller' ? 'SELLER' : 'BUYER')
 const accepted = ref(false)
 const form = reactive({ fullName: '', email: '', phone: '', password: '', confirmPassword: '', storeName: '' })
-const validationError = ref('')
+const errors = ref<Record<string, string>>({})
+
+const termsRule = () => (accepted.value ? '' : 'Đồng ý với điều khoản để tiếp tục.')
+const confirmRule = (value: string) =>
+  !value ? 'Nhập lại mật khẩu.' : value === form.password ? '' : 'Mật khẩu xác nhận chưa khớp.'
+
+function clear(field: string) {
+  delete errors.value[field]
+}
+
+watch(accepted, (value) => value && clear('terms'))
+
+const roles = [
+  { value: 'BUYER' as const, label: 'Tôi muốn mua hàng', hint: 'Đặt hàng, theo dõi đơn' },
+  { value: 'SELLER' as const, label: 'Tôi muốn bán hàng', hint: 'Mở gian hàng riêng' },
+]
+
 watch(role, (value) => router.replace({ query: value === 'SELLER' ? { role: 'seller' } : {} }))
+
 async function submit() {
-  validationError.value = ''
-  if (form.password !== form.confirmPassword) { validationError.value = 'Mật khẩu xác nhận chưa khớp.'; return }
-  if (!accepted.value) { validationError.value = 'Vui lòng đồng ý với điều khoản sử dụng.'; return }
+  errors.value = validate({
+    fullName: [form.fullName, [required('họ tên')]],
+    phone: [form.phone, [required('số điện thoại'), phoneVN()]],
+    email: [form.email, [required('email'), emailRule()]],
+    storeName: [form.storeName, role.value === 'SELLER' ? [required('tên gian hàng')] : []],
+    password: [form.password, [required('mật khẩu'), minLength(8)]],
+    confirmPassword: [form.confirmPassword, [confirmRule]],
+    terms: ['', [termsRule]],
+  })
+  const first = Object.keys(errors.value)[0]
+  if (first) {
+    document.getElementById(first)?.focus()
+    return
+  }
   try {
-    await auth.register({ fullName: form.fullName, email: form.email, phone: form.phone, password: form.password, role: role.value, storeName: role.value === 'SELLER' ? form.storeName : undefined })
+    await auth.register({
+      fullName: form.fullName,
+      email: form.email,
+      phone: form.phone,
+      password: form.password,
+      role: role.value,
+    })
+    if (role.value === 'SELLER') {
+      try {
+        await sellerCatalogApi.createStore({ name: form.storeName.trim() })
+      } catch (reason) {
+        router.replace({ path: '/seller', query: { storeError: messageOf(reason), storeName: form.storeName.trim() } })
+        return
+      }
+    }
     router.replace(role.value === 'SELLER' ? '/seller' : '/')
   } catch { /* Store renders API error. */ }
 }
 </script>
+
 <template>
-  <div class="auth-page register-page">
-    <section class="auth-promo"><RouterLink to="/" class="brand brand-light"><span class="brand-mark">V</span><span>Chợ Việt</span></RouterLink><div><span class="eyebrow-light">GIA NHẬP CỘNG ĐỒNG</span><h1>Bắt đầu hành trình<br />cùng Chợ Việt.</h1><p>Dù bạn muốn mua sắm hay phát triển kinh doanh, Chợ Việt luôn đồng hành.</p><ul class="benefit-list"><li>✓ Tiếp cận hàng nghìn sản phẩm Việt</li><li>✓ Mở gian hàng nhanh chóng, dễ dàng</li><li>✓ Hỗ trợ tận tâm từ đội ngũ Chợ Việt</li></ul></div></section>
-    <section class="auth-panel"><form class="auth-card register-card" @submit.prevent="submit"><div><span class="eyebrow">TẠO TÀI KHOẢN</span><h2>Đăng ký Chợ Việt</h2><p>Đã có tài khoản? <RouterLink to="/login">Đăng nhập</RouterLink></p></div><div class="role-tabs"><button type="button" :class="{ active: role === 'BUYER' }" @click="role = 'BUYER'">🛍️ Tôi muốn mua hàng</button><button type="button" :class="{ active: role === 'SELLER' }" @click="role = 'SELLER'">🏪 Tôi muốn bán hàng</button></div><p v-if="validationError || auth.error" class="form-error">{{ validationError || auth.error }}</p><div class="form-grid"><label>Họ và tên<input v-model.trim="form.fullName" required placeholder="Nguyễn Văn An" /></label><label>Số điện thoại<input v-model.trim="form.phone" type="tel" required placeholder="09xx xxx xxx" /></label></div><label>Email<input v-model.trim="form.email" type="email" required placeholder="ban@email.com" /></label><label v-if="role === 'SELLER'">Tên gian hàng<input v-model.trim="form.storeName" required placeholder="Gian hàng của bạn" /></label><div class="form-grid"><label>Mật khẩu<input v-model="form.password" type="password" minlength="8" required placeholder="Tối thiểu 8 ký tự" /></label><label>Xác nhận mật khẩu<input v-model="form.confirmPassword" type="password" minlength="8" required placeholder="Nhập lại mật khẩu" /></label></div><label class="check terms"><input v-model="accepted" type="checkbox" /> Tôi đồng ý với <a href="#">Điều khoản sử dụng</a> và <a href="#">Chính sách bảo mật</a></label><button class="primary-button" :disabled="auth.loading">{{ auth.loading ? 'Đang tạo tài khoản...' : `Đăng ký ${role === 'SELLER' ? 'bán hàng' : 'mua hàng'}` }}</button></form></section>
+  <div class="band relative grid min-h-svh place-items-center overflow-hidden px-4 py-12">
+    <div class="ribs absolute inset-0" aria-hidden="true" />
+    <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_0%,var(--lamp-soft),transparent_62%)]" aria-hidden="true" />
+
+    <div class="relative w-full max-w-md">
+      <RouterLink to="/" class="mb-6 flex items-center justify-center gap-2.5">
+        <span class="border-primary relative grid size-9 place-items-center rounded-full border-2 bg-band">
+          <span class="border-primary/50 absolute inset-y-[4px] left-[11px] border-l" />
+          <span class="border-primary/50 absolute inset-y-[4px] right-[11px] border-r" />
+          <span class="text-sm leading-none font-extrabold">V</span>
+        </span>
+        <span class="font-display text-lg">Chợ Việt</span>
+      </RouterLink>
+
+      <div class="slip lit p-6 sm:p-7">
+        <p class="label-xs text-primary">Gia nhập cộng đồng</p>
+        <h1 class="font-display mt-2 text-[32px] sm:text-[32px]">Đăng ký Chợ Việt</h1>
+        <p class="text-muted-foreground mt-2 text-sm">
+          Đã có tài khoản?
+          <RouterLink class="text-primary font-semibold underline underline-offset-4" to="/login">Đăng nhập</RouterLink>
+        </p>
+
+        <form class="mt-6 grid gap-4" novalidate @submit.prevent="submit">
+          <fieldset class="grid gap-1.5">
+            <legend class="label-xs text-muted-foreground mb-1.5">Bạn tham gia với vai trò</legend>
+            <div class="grid grid-cols-2 gap-2">
+              <label
+                v-for="option in roles"
+                :key="option.value"
+                class="border-rule bg-paper-sunk flex cursor-pointer flex-col gap-1 rounded-[var(--radius)] border p-3 transition has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-primary/35 has-[:focus-visible]:outline-none"
+                :class="role === option.value && 'border-primary bg-paper'"
+              >
+                <input v-model="role" type="radio" name="role" :value="option.value" class="peer sr-only" />
+                <span class="flex items-center gap-2">
+                  <span
+                    class="grid size-4 shrink-0 place-items-center rounded-full border transition"
+                    :class="role === option.value ? 'border-primary' : 'border-rule-strong'"
+                    aria-hidden="true"
+                  >
+                    <span v-if="role === option.value" class="bg-primary size-2 rounded-full" />
+                  </span>
+                  <span class="text-[13px] leading-tight font-semibold">{{ option.label }}</span>
+                </span>
+                <span class="text-muted-foreground pl-6 text-[11px] leading-tight">{{ option.hint }}</span>
+              </label>
+            </div>
+          </fieldset>
+
+          <DsNote v-if="auth.error" tone="bad">{{ auth.error }}</DsNote>
+
+          <div class="grid gap-1.5">
+            <DsLabel for="fullName" required>Họ và tên</DsLabel>
+            <DsInput
+              id="fullName"
+              v-model.trim="form.fullName"
+              autocomplete="name"
+              placeholder="Nguyễn Văn An"
+              :invalid="!!errors.fullName"
+              required
+              @input="clear('fullName')"
+            />
+            <DsFieldError :message="errors.fullName" />
+          </div>
+          <div class="grid gap-1.5">
+            <DsLabel for="phone" required>Số điện thoại</DsLabel>
+            <DsInput
+              id="phone"
+              v-model.trim="form.phone"
+              type="tel"
+              autocomplete="tel"
+              placeholder="09xx xxx xxx"
+              :invalid="!!errors.phone"
+              required
+              @input="clear('phone')"
+            />
+            <DsFieldError :message="errors.phone" />
+          </div>
+          <div class="grid gap-1.5">
+            <DsLabel for="email" required>Email</DsLabel>
+            <DsInput
+              id="email"
+              v-model.trim="form.email"
+              type="email"
+              autocomplete="email"
+              placeholder="ban@email.com"
+              :invalid="!!errors.email"
+              required
+              @input="clear('email')"
+            />
+            <DsFieldError :message="errors.email" />
+          </div>
+          <div v-if="role === 'SELLER'" class="grid gap-1.5">
+            <DsLabel for="storeName" required>Tên gian hàng</DsLabel>
+            <DsInput
+              id="storeName"
+              v-model.trim="form.storeName"
+              placeholder="Gian hàng của bạn"
+              :invalid="!!errors.storeName"
+              required
+              @input="clear('storeName')"
+            />
+            <DsFieldError :message="errors.storeName" />
+          </div>
+          <div class="grid gap-1.5">
+            <DsLabel for="password" required>Mật khẩu</DsLabel>
+            <DsInput
+              id="password"
+              v-model="form.password"
+              type="password"
+              autocomplete="new-password"
+              placeholder="Tối thiểu 8 ký tự"
+              :invalid="!!errors.password"
+              required
+              @input="clear('password')"
+            />
+            <DsFieldError :message="errors.password" />
+          </div>
+          <div class="grid gap-1.5">
+            <DsLabel for="confirmPassword" required>Xác nhận mật khẩu</DsLabel>
+            <DsInput
+              id="confirmPassword"
+              v-model="form.confirmPassword"
+              type="password"
+              autocomplete="new-password"
+              placeholder="Nhập lại mật khẩu"
+              :invalid="!!errors.confirmPassword"
+              required
+              @input="clear('confirmPassword')"
+            />
+            <DsFieldError :message="errors.confirmPassword" />
+          </div>
+
+          <div class="grid gap-1">
+            <DsCheckbox id="terms" v-model="accepted" label="Tôi đồng ý với Điều khoản sử dụng và Chính sách bảo mật" />
+            <DsFieldError :message="errors.terms" />
+          </div>
+
+          <DsButton type="submit" variant="primary" size="lg" block :loading="auth.loading">
+            Đăng ký {{ role === 'SELLER' ? 'bán hàng' : 'mua hàng' }}
+          </DsButton>
+        </form>
+      </div>
+
+      <p class="label-xs mt-6 text-center opacity-55">Hàng Việt · giao tươi 2 giờ · freeship 500k</p>
+    </div>
   </div>
 </template>

@@ -27,7 +27,6 @@ export interface RegisterPayload extends LoginPayload {
   fullName: string
   phone?: string
   role: 'BUYER' | 'SELLER'
-  storeName?: string
 }
 
 const unwrap = <T>(response: AxiosResponse<T | { data: T }>): T => {

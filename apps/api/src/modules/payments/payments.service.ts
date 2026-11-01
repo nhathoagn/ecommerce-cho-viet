@@ -1,7 +1,9 @@
 import {
   BadRequestException,
+  ForbiddenException,
   ConflictException,
   Injectable,
+  Logger,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -28,6 +30,7 @@ interface MomoIpn {
 
 @Injectable()
 export class PaymentsService {
+  private readonly logger = new Logger(PaymentsService.name);
   private readonly partnerCode: string;
   private readonly accessKey: string;
   private readonly secretKey: string;
@@ -36,6 +39,8 @@ export class PaymentsService {
   private readonly refundEndpoint: string;
   private readonly redirectUrl: string;
   private readonly ipnUrl: string;
+  private readonly webUrl: string;
+  private readonly forceLocalPayment: boolean;
 
   constructor(
     private readonly prisma: PrismaService,
@@ -45,6 +50,7 @@ export class PaymentsService {
     this.accessKey = config.get<string>('MOMO_ACCESS_KEY') ?? '';
     this.secretKey = config.get<string>('MOMO_SECRET_KEY') ?? '';
     this.createEndpoint = config.get<string>('MOMO_ENDPOINT') ?? '';
+    this.webUrl = config.get<string>('WEB_URL') ?? 'http://localhost:5173';
     this.queryEndpoint =
       config.get<string>('MOMO_QUERY_ENDPOINT') ??
       'https://test-payment.momo.vn/v2/gateway/api/query';
@@ -53,6 +59,7 @@ export class PaymentsService {
       'https://test-payment.momo.vn/v2/gateway/api/refund';
     this.redirectUrl = config.get<string>('MOMO_REDIRECT_URL') ?? '';
     this.ipnUrl = config.get<string>('MOMO_IPN_URL') ?? '';
+    this.forceLocalPayment = config.get<boolean>('DEV_FORCE_LOCAL_PAYMENT') === true;
   }
 
   async create(userId: string, orderId: string) {
@@ -69,6 +76,14 @@ export class PaymentsService {
       throw new ConflictException('Order already paid');
     const requestId = existing?.requestId ?? randomUUID();
     const amount = Number(order.totalAmount);
+    if (
+      this.forceLocalPayment ||
+      !this.partnerCode ||
+      !this.accessKey ||
+      !this.secretKey
+    ) {
+      return this.createLocalPayment(order, requestId, amount);
+    }
     const orderInfo = `Thanh toan don hang ${order.code}`;
     const extraData = '';
     const requestType = 'captureWallet';
@@ -90,10 +105,12 @@ export class PaymentsService {
       signature: this.sign(raw),
     };
     const response = await this.post(this.createEndpoint, body);
-    if (Number(response.resultCode) !== 0)
-      throw new BadRequestException(
-        response.message ?? 'MoMo rejected payment request',
+    if (Number(response.resultCode) !== 0) {
+      this.logger.warn(
+        `MoMo create declined resultCode=${String(response.resultCode)} message=${String(response.message)}`,
       );
+      throw new BadRequestException('MoMo rejected payment request');
+    }
     const payment = await this.prisma.payment.upsert({
       where: { orderId },
       create: {
@@ -106,6 +123,85 @@ export class PaymentsService {
       update: { payUrl: String(response.payUrl), resultCode: 0 },
     });
     return { paymentId: payment.id, payUrl: payment.payUrl, requestId };
+  }
+
+  /** Dev/sandbox with no MoMo keys: park the payment as pending, let the buyer confirm. */
+  private async createLocalPayment(
+    order: { id: string; code: string; storeId: string },
+    requestId: string,
+    amount: number,
+  ) {
+    const payUrl = `${this.webUrl.replace(/\/$/, '')}/payment/result?orderId=${order.id}`;
+    const payment = await this.prisma.payment.upsert({
+      where: { orderId: order.id },
+      create: {
+        orderId: order.id,
+        requestId,
+        amount: new Prisma.Decimal(amount),
+        payUrl,
+        resultCode: 0,
+        status: PaymentStatus.PENDING,
+      },
+      update: { payUrl, resultCode: 0, status: PaymentStatus.PENDING, paidAt: null },
+    });
+    return { paymentId: payment.id, payUrl: payment.payUrl, requestId };
+  }
+
+  /**
+   * Confirms a local (no-MoMo) payment. Only available when MoMo is not configured
+   * or DEV_FORCE_LOCAL_PAYMENT is on, so a real deployment can never mark an order
+   * paid without the gateway.
+   */
+  async confirmLocal(userId: string, orderId: string) {
+    if (!this.forceLocalPayment && this.partnerCode && this.accessKey && this.secretKey)
+      throw new ForbiddenException('Local payment confirmation is disabled');
+    const order = await this.prisma.order.findFirst({
+      where: { id: orderId, buyerId: userId },
+      include: { store: { select: { sellerId: true } } },
+    });
+    if (!order) throw new NotFoundException('Order not found');
+    if (order.status !== OrderStatus.PENDING_PAYMENT)
+      throw new ConflictException('Order is not awaiting payment');
+    const payment = await this.prisma.payment.findUnique({ where: { orderId } });
+    if (!payment) throw new NotFoundException('Payment not found');
+    if (payment.status === PaymentStatus.SUCCESS)
+      throw new ConflictException('Order already paid');
+
+    const amount = Number(order.totalAmount);
+    return this.prisma.$transaction(async (tx) => {
+      const wallet = await tx.sellerWallet.upsert({
+        where: { sellerId: order.store.sellerId },
+        create: { sellerId: order.store.sellerId },
+        update: {},
+      });
+      const updated = await tx.payment.update({
+        where: { orderId },
+        data: { status: PaymentStatus.SUCCESS, paidAt: new Date(), resultCode: 0 },
+      });
+      await tx.order.update({
+        where: { id: orderId },
+        data: {
+          status: OrderStatus.PAID,
+          statusHistory: {
+            create: { status: OrderStatus.PAID, note: 'Local payment confirmed in dev' },
+          },
+        },
+      });
+      await tx.walletTransaction.create({
+        data: {
+          walletId: wallet.id,
+          reference: `ORDER:${orderId}`,
+          type: WalletTransactionType.ORDER_CREDIT,
+          amount: new Prisma.Decimal(amount),
+          description: `Payment for order ${order.code}`,
+        },
+      });
+      await tx.sellerWallet.update({
+        where: { id: wallet.id },
+        data: { availableBalance: { increment: amount } },
+      });
+      return updated;
+    });
   }
 
   status(userId: string, orderId: string) {

@@ -12,9 +12,25 @@ export const useCartStore = defineStore('cart', () => {
   const items = computed(() => cart.value?.items ?? [])
   const count = computed(() => items.value.reduce((sum, item) => sum + item.quantity, 0))
   const total = computed(() => items.value.reduce((sum, item) => sum + Number(item.product.price) * item.quantity, 0))
-  async function load() { cart.value = await apiClient.get('/cart').then(unwrap<Cart>) }
+  async function load() {
+    cart.value = await apiClient.get('/cart').then(unwrap<Cart>)
+    await clampToStock()
+  }
+  async function clampToStock() {
+    for (const item of [...items.value]) {
+      if (item.product.stock < 1) {
+        cart.value = await apiClient.delete(`/cart/items/${item.id}`).then(unwrap<Cart>)
+      } else if (item.quantity > item.product.stock) {
+        cart.value = await apiClient.patch(`/cart/items/${item.id}`, { quantity: item.product.stock }).then(unwrap<Cart>)
+      }
+    }
+  }
   async function add(productId: string, quantity = 1) { cart.value = await apiClient.post('/cart/items', { productId, quantity }).then(unwrap<Cart>) }
-  async function update(id: string, quantity: number) { cart.value = await apiClient.patch(`/cart/items/${id}`, { quantity }).then(unwrap<Cart>) }
+  async function update(id: string, quantity: number) {
+    const item = items.value.find((entry) => entry.id === id)
+    const max = item?.product.stock ?? quantity
+    cart.value = await apiClient.patch(`/cart/items/${id}`, { quantity: Math.min(quantity, max) }).then(unwrap<Cart>)
+  }
   async function remove(id: string) { cart.value = await apiClient.delete(`/cart/items/${id}`).then(unwrap<Cart>) }
   async function clear() { cart.value = await apiClient.delete('/cart').then(unwrap<Cart>) }
   return { cart, items, count, total, load, add, update, remove, clear }

@@ -89,10 +89,10 @@ export class CreateProductDto {
   @IsString()
   description?: string;
 
-  @ApiProperty()
+  @ApiProperty({ description: 'Giá bán, tối thiểu 1.000₫' })
   @Type(() => Number)
   @IsNumber()
-  @Min(0)
+  @Min(1000)
   price!: number;
 
   @ApiPropertyOptional()

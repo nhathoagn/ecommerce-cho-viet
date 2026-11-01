@@ -12,6 +12,14 @@ Source base cho web bán hàng với hai vai trò buyer và seller.
 
 ## Chạy local
 
+Cách nhanh nhất:
+
+```bash
+./start.sh   # tạo .env, bật Postgres/Redis, cài deps, migrate, rồi chạy web + API
+```
+
+Script tự dùng lại Postgres đang lắng nghe ở `DATABASE_URL` (bản cài local hay container đều được), chỉ khởi compose khi không có gì trả lời. Chạy tay từng bước:
+
 ```bash
 cp apps/api/.env.example apps/api/.env
 cp apps/web/.env.example apps/web/.env
@@ -83,3 +91,8 @@ docs                     Tài liệu nghiệp vụ
 ```
 
 Không đưa khóa MoMo hoặc Cloudflare R2 vào frontend và Git.
+
+**Thanh toán khi dev.** Bộ khoá mẫu công khai `MOMOBKUN20180529` đã bị test-payment.momo.vn từ chối (resultCode 99). Chọn một trong hai:
+
+- `DEV_FORCE_LOCAL_PAYMENT=true` (mặc định trong `.env.example`): đơn ở trạng thái **chờ thanh toán**; trang `/payment/result` hiện nút **"Xác nhận đã thanh toán (demo)"** cùng khối **"Mã QR demo"**. Chỉ khi bấm xác nhận thì đơn mới chuyển PAID và cộng ví người bán. Không có giao dịch thật nào diễn ra.
+- Tự đăng ký sandbox tại developers.momo.vn rồi điền `MOMO_PARTNER_CODE` / `MOMO_ACCESS_KEY` / `MOMO_SECRET_KEY` và đặt `DEV_FORCE_LOCAL_PAYMENT=false`: trang thanh toán sẽ hiện **QR MoMo thật** kèm nút mở app, trạng thái cập nhật theo IPN.

@@ -28,6 +28,12 @@ export class PaymentsController {
   }
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
+  @Post(':orderId/confirm')
+  confirm(@CurrentUser() user: AuthUser, @Param('orderId') orderId: string) {
+    return this.payments.confirmLocal(user.id, orderId);
+  }
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   @Get(':orderId/status')
   status(@CurrentUser() user: AuthUser, @Param('orderId') orderId: string) {
     return this.payments.status(user.id, orderId);

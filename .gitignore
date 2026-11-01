@@ -12,3 +12,11 @@ coverage
 .omp
 
 *.tsbuildinfo
+
+# ---------------- #
+# Local agent/tool scratch (not project source)
+# ---------------- #
+.opencode
+.impeccable
+.verify-dist
+.tmp-*.png

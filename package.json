@@ -4,7 +4,7 @@
   "private": true,
   "packageManager": "pnpm@12.10.1",
   "scripts": {
-    "dev": "pnpm --parallel --filter ./apps/* dev",
+    "dev": "pnpm --parallel --filter \"./apps/*\" dev",
     "dev:web": "pnpm --filter web dev",
     "dev:api": "pnpm --filter api start:dev",
     "build": "pnpm --recursive build",

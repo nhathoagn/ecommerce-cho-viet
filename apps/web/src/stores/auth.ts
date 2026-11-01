@@ -51,7 +51,7 @@ export const useAuthStore = defineStore('auth', () => {
   async function fetchUser() {
     if (!token.value) return
     try { user.value = await authApi.me(); localStorage.setItem(USER_KEY, JSON.stringify(user.value)) }
-    catch { clear() }
+    catch (reason: unknown) { if (statusOf(reason) === 401) clear() }
   }
 
   async function logout() {
@@ -65,10 +65,52 @@ export const useAuthStore = defineStore('auth', () => {
   return { user, token, loading, error, isAuthenticated, isSeller, login, register, logout, fetchUser, clear, setUser }
 })
 
-function messageOf(reason: unknown) {
-  if (typeof reason === 'object' && reason && 'response' in reason) {
-    const response = (reason as { response?: { data?: { message?: string } } }).response
-    return response?.data?.message ?? 'Không thể kết nối. Vui lòng thử lại.'
-  }
-  return 'Đã có lỗi xảy ra. Vui lòng thử lại.'
+function apiMessage(value: unknown): string {
+  if (!value || typeof value !== 'object' || !('response' in value)) return ''
+  const response = value.response
+  if (!response || typeof response !== 'object' || !('data' in response)) return ''
+  const data = response.data
+  if (!data || typeof data !== 'object') return ''
+  const nested = 'error' in data && data.error && typeof data.error === 'object' && 'message' in data.error
+    ? data.error.message
+    : 'message' in data
+      ? data.message
+      : undefined
+  if (typeof nested === 'string' && nested) return nested
+  if (Array.isArray(nested)) return nested.filter((item) => typeof item === 'string').join(' ')
+  return ''
+}
+
+const knownErrors: Record<string, string> = {
+  'Invalid email or password': 'Email hoặc mật khẩu không đúng.',
+  'Account is suspended': 'Tài khoản đã bị khóa.',
+  'Cart is empty': 'Giỏ hàng đang trống. Thêm sản phẩm rồi thử lại.',
+  'Coupon is not valid': 'Mã giảm giá không hợp lệ hoặc đã hết lượt.',
+  'Shipping address not found': 'Không tìm thấy địa chỉ giao hàng.',
+  'MoMo gateway unavailable': 'Không kết nối được MoMo. Thử lại sau.',
+  'MoMo rejected payment request': 'MoMo từ chối giao dịch. Kiểm tra cấu hình thanh toán.',
+  'Order is not awaiting payment': 'Đơn hàng không còn chờ thanh toán.',
+  'Checkout supports one store at a time': 'Mỗi lần thanh toán chỉ được mua từ một gian hàng.',
+}
+
+/** Every user-facing error is Vietnamese: the API speaks English, the UI never does. */
+export function messageOf(reason: unknown) {
+  const status = statusOf(reason)
+  if (status === undefined) return 'Không kết nối được máy chủ. Kiểm tra mạng rồi thử lại.'
+  if (status === 401) return 'Phiên đăng nhập đã hết hạn. Đăng nhập lại để tiếp tục.'
+  if (status === 403) return 'Bạn không có quyền thực hiện thao tác này.'
+  if (status === 404) return 'Không tìm thấy dữ liệu. Có thể mục này đã bị xoá.'
+  if (status >= 500) return 'Máy chủ đang gặp sự cố. Thử lại sau ít phút.'
+
+  const message = apiMessage(reason)
+  if (message.startsWith('Insufficient stock for '))
+    return `Không đủ tồn kho cho ${message.slice('Insufficient stock for '.length)}.`
+  return knownErrors[message] ?? 'Không thực hiện được. Vui lòng thử lại.'
+}
+
+function statusOf(reason: unknown): number | undefined {
+  if (!reason || typeof reason !== 'object' || !('response' in reason)) return
+  const response = reason.response
+  if (!response || typeof response !== 'object' || !('status' in response)) return
+  return typeof response.status === 'number' ? response.status : undefined
 }

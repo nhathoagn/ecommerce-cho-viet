@@ -27,4 +27,31 @@ describe('AuthController', () => {
       UserRole.BUYER,
     );
   });
+
+  it('keeps name when both name and fullName are present', async () => {
+    const register = vi.fn().mockResolvedValue({});
+    await new AuthController({ register } as unknown as AuthService).register({
+      name: 'An',
+      fullName: 'Khac',
+      email: 'buyer@example.com',
+      password: 'password123',
+      role: UserRole.BUYER,
+      storeName: 'Shop',
+    });
+    expect(register).toHaveBeenCalledWith(
+      expect.objectContaining({ name: 'An' }),
+      UserRole.BUYER,
+    );
+    expect(register.mock.calls[0]?.[0]).not.toHaveProperty('storeName');
+  });
+
+  it('forces buyer and seller routes', async () => {
+    const register = vi.fn().mockResolvedValue({});
+    const controller = new AuthController({ register } as unknown as AuthService);
+    const dto = { email: 'a@b.com', password: 'password123', name: 'An' };
+    await controller.registerBuyer(dto);
+    await controller.registerSeller(dto);
+    expect(register).toHaveBeenNthCalledWith(1, dto, UserRole.BUYER);
+    expect(register).toHaveBeenNthCalledWith(2, dto, UserRole.SELLER);
+  });
 });

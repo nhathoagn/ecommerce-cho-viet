@@ -1,0 +1,113 @@
+{
+  "version": 1,
+  "features": [
+    {
+      "id": "FEAT-001",
+      "slug": "run-verification-map",
+      "title": "Run verification map and report bugs",
+      "status": "done",
+      "owner": null,
+      "created": "2026-10-20",
+      "updated": "2026-10-20",
+      "acceptance": [
+        "Isolated doctor exits 0 for web http://127.0.0.1:5174, API http://127.0.0.1:3100, and database ecommerce_verify, while port 3000 still belongs to the developer API.",
+        "Every feature file under .omp/skills/verify-cho-viet/features/ is driven on that instance, and each drive writes actions plus an observed result under evidence/<feature-id>/.",
+        "Each map expected end state is compared to the observation. Every mismatch is written in evidence/bug-report.md with the command and the observed result. A path is not marked pass when the end state was not observed.",
+        "Cleanup leaves the evidence files, frees ports 3100 and 5174, leaves port 3000 listening, and leaves database ecommerce in place."
+      ],
+      "entryPoints": [
+        ".omp/skills/verify-cho-viet/features",
+        "apps/web/src/views",
+        "apps/api/src/modules"
+      ],
+      "dependsOn": [],
+      "evals": [],
+      "evidence": [
+        {
+          "criterion": 1,
+          "how": ".omp/skills/verify-cho-viet/scripts/launch.sh && .omp/skills/verify-cho-viet/scripts/doctor.sh; lsof -nP -iTCP:3000 -sTCP:LISTEN -t",
+          "artifact": ".omp/skills/verify-cho-viet/evidence/doctor/doctor.txt",
+          "result": "pass",
+          "at": "2026-10-20T16:30:41.439Z"
+        },
+        {
+          "criterion": 2,
+          "how": "Drove register, login, browse-catalog, cart, and seller-store on http://127.0.0.1:5174. Each directory has actions.txt plus an observed result (aria, screenshot, or API/SQL output).",
+          "artifact": ".omp/skills/verify-cho-viet/evidence",
+          "result": "pass",
+          "at": "2026-10-20T16:39:11.442Z"
+        },
+        {
+          "criterion": 3,
+          "how": "Compared each map end state with the browser and SQL/API observation. Mismatches were written with the command and observed result. Matching paths were not marked as bugs.",
+          "artifact": ".omp/skills/verify-cho-viet/evidence/bug-report.md",
+          "result": "pass",
+          "at": "2026-10-20T16:39:11.443Z"
+        },
+        {
+          "criterion": 4,
+          "how": ".omp/skills/verify-cho-viet/scripts/cleanup.sh; find evidence files; lsof 3100/5174/3000; psql datname list. Ports 3100 and 5174 were free. Port 3000 pid 54569 still listened. Only database ecommerce remained. evidence/bug-report.md still existed.",
+          "artifact": ".omp/skills/verify-cho-viet/evidence/bug-report.md",
+          "result": "pass",
+          "at": "2026-10-20T16:39:21.940Z"
+        }
+      ],
+      "notes": "Self-certified from the isolated browser run. No independent evals. Eight product bugs are recorded in evidence/bug-report.md. They were reported, not fixed."
+    },
+    {
+      "id": "FEAT-002",
+      "slug": "rerun-verification-map",
+      "title": "Re-run verification map after bugfix",
+      "status": "done",
+      "owner": null,
+      "created": "2026-10-20",
+      "updated": "2026-10-20",
+      "acceptance": [
+        "Isolated doctor exits 0 for http://127.0.0.1:5174, http://127.0.0.1:3100, and database ecommerce_verify, while port 3000 still belongs to the developer API.",
+        "Every feature file under .omp/skills/verify-cho-viet/features/ is driven on that instance, and each drive writes actions plus an observed result under evidence/rerun/<feature-id>/.",
+        "Each map expected end state is compared with the observation. Every mismatch is written in evidence/rerun/bug-report.md with the command and the observed result. A path is not marked pass when the end state was not observed.",
+        "Cleanup leaves the rerun evidence, frees ports 3100 and 5174, leaves port 3000 listening, and leaves database ecommerce in place."
+      ],
+      "entryPoints": [
+        ".omp/skills/verify-cho-viet/features",
+        "apps/web/src/views",
+        "apps/api/src/modules"
+      ],
+      "dependsOn": [
+        "FEAT-001"
+      ],
+      "evals": [],
+      "evidence": [
+        {
+          "criterion": 1,
+          "how": ".omp/skills/verify-cho-viet/scripts/launch.sh && .omp/skills/verify-cho-viet/scripts/doctor.sh; lsof -nP -iTCP:3000 -sTCP:LISTEN -t",
+          "artifact": ".omp/skills/verify-cho-viet/evidence/rerun/doctor.txt",
+          "result": "pass",
+          "at": "2026-10-20T16:54:29.233Z"
+        },
+        {
+          "criterion": 2,
+          "how": "Drove register, login, browse-catalog, cart, and seller-store on http://127.0.0.1:5174. Each directory under evidence/rerun/ has actions.txt plus an aria snapshot, screenshot, or SQL/API body.",
+          "artifact": ".omp/skills/verify-cho-viet/evidence/rerun",
+          "result": "pass",
+          "at": "2026-10-20T16:56:11.750Z"
+        },
+        {
+          "criterion": 3,
+          "how": "Compared each map end state with the browser, SQL, and API observation. Mismatches are stale map sentences, not new app failures. They are written with the command and the observed result.",
+          "artifact": ".omp/skills/verify-cho-viet/evidence/rerun/bug-report.md",
+          "result": "pass",
+          "at": "2026-10-20T16:56:11.752Z"
+        },
+        {
+          "criterion": 4,
+          "how": ".omp/skills/verify-cho-viet/scripts/cleanup.sh; find evidence/rerun; lsof 3100/5174/3000; psql datname list. Ports 3100 and 5174 were free. Port 3000 pid 54569 still listened. Only database ecommerce remained. evidence/rerun/bug-report.md still existed.",
+          "artifact": ".omp/skills/verify-cho-viet/evidence/rerun/bug-report.md",
+          "result": "pass",
+          "at": "2026-10-20T16:56:28.734Z"
+        }
+      ],
+      "notes": "Self-certified from the isolated browser rerun. No independent evals. No new app failure. Four stale map sentences are in evidence/rerun/bug-report.md."
+    }
+  ]
+}
