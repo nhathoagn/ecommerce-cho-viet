@@ -1,6 +1,14 @@
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
   "installCommand": "pnpm install --frozen-lockfile",
-  "buildCommand": "pnpm --filter web build",
+  "buildCommand": "pnpm db:generate && pnpm --filter api build && pnpm --filter web build",
   "outputDirectory": "apps/web/dist",
+  "regions": ["sin1"],
+  "functions": {
+    "api/**/*.mjs": {
+      "includeFiles": ["apps/api/dist/**", "node_modules/.pnpm/@prisma+client*/**"],
+      "maxDuration": 60
+    }
+  },
   "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
 }
