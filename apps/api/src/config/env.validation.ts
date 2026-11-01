@@ -33,6 +33,10 @@ const envSchema = Joi.object({
   CLOUDFLARE_R2_BUCKET_PUBLIC: Joi.string().required(),
   CLOUDFLARE_R2_BUCKET_PRIVATE: Joi.string().required(),
   CLOUDFLARE_R2_PUBLIC_URL: Joi.string().allow('').default(''),
+  // Optional overrides to point the same client at another S3-compatible store.
+  S3_ENDPOINT: Joi.string().allow('').default(''),
+  S3_REGION: Joi.string().allow('').default('auto'),
+  S3_FORCE_PATH_STYLE: Joi.string().valid('true', 'false').default('false'),
 });
 
 export function validateEnv(config: Record<string, unknown>) {

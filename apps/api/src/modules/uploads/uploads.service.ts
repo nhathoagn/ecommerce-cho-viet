@@ -18,9 +18,14 @@ export class UploadsService {
     this.publicUrl = (
       config.get<string>('CLOUDFLARE_R2_PUBLIC_URL') ?? ''
     ).replace(/\/$/, '');
+    // Any S3-compatible store works: the R2 endpoint stays the default, and
+    // S3_ENDPOINT points at something else (Supabase Storage, B2, MinIO).
     this.client = new S3Client({
-      region: 'auto',
-      endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
+      region: config.get<string>('S3_REGION') || 'auto',
+      endpoint:
+        config.get<string>('S3_ENDPOINT') ||
+        `https://${accountId}.r2.cloudflarestorage.com`,
+      forcePathStyle: config.get<string>('S3_FORCE_PATH_STYLE') === 'true',
       credentials: {
         accessKeyId: config.get<string>('CLOUDFLARE_R2_ACCESS_KEY_ID') ?? '',
         secretAccessKey:

@@ -17,6 +17,7 @@ function uploads(publicUrl = 'https://cdn.example') {
     get: (key: string) => {
       if (key === 'CLOUDFLARE_R2_PUBLIC_URL') return publicUrl;
       if (key === 'CLOUDFLARE_R2_BUCKET_PUBLIC') return 'public';
+      if (key.startsWith('S3_')) return '';
       return 'account';
     },
   } as unknown as ConfigService);
