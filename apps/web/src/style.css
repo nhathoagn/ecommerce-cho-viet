@@ -247,3 +247,23 @@
     background: var(--primary);
   }
 }
+
+/* Promo strip: on phones the line does not fit, so it scrolls instead of being
+   cut off. Two identical copies sit side by side, so a 50% shift loops seamlessly. */
+@keyframes strip-marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.strip-marquee {
+  display: flex;
+  width: max-content;
+  animation: strip-marquee 16s linear infinite;
+}
+
+@media (min-width: 40rem), (prefers-reduced-motion: reduce) {
+  .strip-marquee {
+    animation: none;
+  }
+}

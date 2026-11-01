@@ -146,10 +146,10 @@ onBeforeUnmount(() => {
           </div>
         </form>
 
-        <div class="flex shrink-0 items-center gap-1.5">
+        <div class="ml-auto flex shrink-0 items-center gap-1.5">
           <button
             type="button"
-            class="text-muted-foreground hover:text-foreground hover:bg-secondary grid size-10 place-items-center rounded-[var(--radius)] transition"
+            class="text-muted-foreground hover:text-foreground hover:bg-secondary grid size-10 place-items-center rounded-[var(--radius)] border border-rule-strong transition sm:border-0"
             :aria-label="night ? 'Chuyển sang chế độ ngày' : 'Chuyển sang chế độ đêm'"
             @click="toggle"
           >

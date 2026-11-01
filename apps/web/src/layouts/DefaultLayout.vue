@@ -32,10 +32,15 @@ onUnmounted(() => window.clearInterval(timer))
     <div class="band relative z-40 overflow-hidden">
       <div class="ribs absolute inset-0 opacity-70" aria-hidden="true" />
       <div class="relative mx-auto flex w-full max-w-6xl items-center justify-between gap-3 px-4 py-2 text-[12px] sm:px-5">
-        <p class="flex min-w-0 items-center gap-2 truncate">
-          <span class="bg-primary text-primary-foreground label-xs rounded-[3px] px-1.5 py-1">Flash</span>
-          <span class="truncate">Freeship đơn 500k · mã <b class="text-accent">CHOVIET10</b> giảm 10%</span>
-        </p>
+        <div class="flex min-w-0 flex-1 items-center gap-2">
+          <span class="bg-primary text-primary-foreground label-xs shrink-0 rounded-[3px] px-1.5 py-1">Flash</span>
+          <div class="min-w-0 flex-1 overflow-hidden">
+            <div class="strip-marquee">
+              <span class="pr-8 whitespace-nowrap">Freeship đơn 500k · mã <b class="text-accent">CHOVIET10</b> giảm 10%</span>
+              <span class="pr-8 whitespace-nowrap sm:hidden" aria-hidden="true">Freeship đơn 500k · mã <b class="text-accent">CHOVIET10</b> giảm 10%</span>
+            </div>
+          </div>
+        </div>
         <p class="hidden shrink-0 items-center gap-1.5 sm:flex">
           <span class="label-xs opacity-60">Còn</span>
           <span v-for="(part, index) in clock.split(':')" :key="index" class="bg-background text-foreground num rounded-[3px] px-1.5 py-0.5 text-[11px] font-extrabold">{{ part }}</span>
