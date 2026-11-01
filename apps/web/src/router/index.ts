@@ -31,7 +31,13 @@ const router = createRouter({
     ]},
     { path: '/:pathMatch(.*)*', redirect: '/' },
   ],
-  scrollBehavior: () => ({ top: 0 }),
+  scrollBehavior: (to, _from, saved) => {
+    // In-page links such as the hero CTA carry a hash; jumping to it must win over
+    // the default "start at the top on every navigation".
+    if (saved) return saved
+    if (to.hash) return { el: to.hash, behavior: 'smooth' }
+    return { top: 0 }
+  },
 })
 
 router.beforeEach(async (to) => {

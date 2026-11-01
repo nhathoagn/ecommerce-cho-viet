@@ -109,12 +109,12 @@ async function submit() {
       <h1 class="mt-2 text-[32px] sm:text-[40px]">Xác nhận đơn hàng</h1>
     </div>
 
-    <ol class="mb-5 grid grid-cols-3 gap-2" aria-label="Các bước thanh toán">
+    <ol class="mb-5 flex flex-wrap gap-2 sm:grid sm:grid-cols-3" aria-label="Các bước thanh toán">
       <li class="border-rule border px-2.5 py-2 sm:px-3">
-        <RouterLink class="label-xs text-primary" to="/cart">1 · Giỏ hàng</RouterLink>
+        <RouterLink class="label-xs text-primary whitespace-nowrap" to="/cart">1 · Giỏ hàng</RouterLink>
       </li>
-      <li class="bg-accent text-accent-foreground border-accent label-xs border px-2.5 py-2 sm:px-3" aria-current="step">2 · Địa chỉ</li>
-      <li class="border-rule text-muted-foreground label-xs border px-2.5 py-2 sm:px-3">3 · MoMo</li>
+      <li class="bg-accent text-accent-foreground border-accent label-xs border px-2.5 py-2 whitespace-nowrap sm:px-3" aria-current="step">2 · Địa chỉ</li>
+      <li class="border-rule text-muted-foreground label-xs border px-2.5 py-2 whitespace-nowrap sm:px-3">3 · MoMo</li>
     </ol>
 
     <form class="grid gap-5 lg:grid-cols-[minmax(0,1fr)_330px] lg:items-start" novalidate @submit.prevent="submit">
